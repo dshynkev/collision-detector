@@ -68,5 +68,5 @@ class MainWindow(pyglet.window.Window):
 if (__name__=="__main__"):
 	window = MainWindow()
 	window.add_item(Rectangle((10, 10), 200, 300))
-	window.add_item(Circle((20, 20), 100))
+	window.add_item(Rectangle((20, 20), 100, 200))
 	pyglet.app.run()
