@@ -21,9 +21,11 @@ def getRandomNormalizedColor():
 def load_GLshaders(vertex_src=const.VERTEX_SHADER_SRC, fragment_src=const.FRAGMENT_SHADER_SRC):
     vertex_f=open(vertex_src, 'rb')
     vertex_code=vertex_f.read()
+    vertex_f.close()
     
     fragment_f=open(fragment_src, 'rb')
     fragment_code=fragment_f.read()
+    fragment_f.close()
    
     return Shader([vertex_code], [fragment_code])
         

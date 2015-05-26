@@ -54,7 +54,15 @@ class MainWindow(pyglet.window.Window):
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         for item in self.dragged_items:
             item.move((dx, dy))
-
+        for item in self.items:
+            collided_items = item.collided(self.items)
+            if(len(collided_items)>0):
+                item.setCollided(True)
+                for collided_item in collided_items:
+                    collided_item.setCollided()
+            else:
+                item.setCollided(False)
+                
     def on_mouse_release(self, x, y, button, modifiers):
         self.dragged_items.clear()
 
@@ -70,5 +78,5 @@ if (__name__=="__main__"):
     window = MainWindow()
     window.add_item(Rectangle((10, 10), 200, 300))
     window.add_item(Rectangle((20, 20), 100, 200))
-    window.add_item(Circle((150, 150), 100))
+    window.add_item(Rectangle((150, 150), 100, 400))
     pyglet.app.run()

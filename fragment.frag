@@ -1,5 +1,7 @@
 #version 400
 
+#define SMOOTH_FACTOR 2
+
 //The coordinate of current texel.
 in vec2 fPos;
 
@@ -17,8 +19,8 @@ void main()
   float dist = distance(fPos, vec2(0, 0));
   
   //Delta is the width of the smooth border area. fwidth() returns the total derivative, i.e. how fast dist changes within current fragment.
-  //1.5 is a magic coefficient, chosen arbitrarily.
-  float delta = fwidth(dist)*1.5;
+  //SMOOTH_FACTOR is a magic coefficient, chosen arbitrarily.
+  float delta = fwidth(dist)*SMOOTH_FACTOR;
   
   //If dist is within 1-delta...1, dist will hold a value [0...1], describing a stage of smooth transition.
   float alpha = smoothstep(1-delta, 1, dist);
