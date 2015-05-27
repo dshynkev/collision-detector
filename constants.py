@@ -1,11 +1,11 @@
 '''
-AUTHOR:                 principio
+AUTHOR:         principio
 LAST EDITED:
 DESCRIPTION:    This holds the constants that pertain to this program
-KNOWN ISSUES:   Implementation imcomplete.
+KNOWN ISSUES:
 '''
 
-FPS = 60
+FPS = 30    #Smooth enough on my machine, subject to decrement if drawing code becomes too bloated.
 
 VERTEX_SHADER_SRC="vertex.vert"
 FRAGMENT_SHADER_SRC="fragment.frag"
@@ -13,13 +13,11 @@ FRAGMENT_SHADER_SRC="fragment.frag"
 MAIN_TITLE="Collision detector"
 MAIN_MIN_SIZE = (100, 100)  #Width could be larger, depending on the window dectorations. Let the WM handle that.
 
-SIDEPANE_WIDTH_RATIO = 1
-SIDEPANE_HEIGHT_RATIO = 1/4
+COLOR_WHITE = (255, 255, 255, 255)
+COLOR_BLACK = (0, 0, 0, 255)
+COLOR_RED = (255, 0, 0, 255)
 
 COLOR_LOWEST = 100      #Lower and upper limits for color generation
 COLOR_HIGHEST = 200
-COLOR_ALPHA = 177
-
-WHITE = (255, 255, 255, 0)
-RED = (255, 0, 0, 255)
-BLACK = (0, 0, 0, 0)
+COLOR_ALPHA = 177       #Let alpha be uniform for all shapes
+COLOR_COLLIDING = COLOR_RED    #The color for when shapes collide

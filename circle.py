@@ -1,15 +1,8 @@
 '''
-AUTHOR: 	 	principio
-LAST EDITED: 	
-DESCRIPTION: 	
-KNOWN ISSUES: 	
-'''
-
-'''
 AUTHOR:          principio
 LAST EDITED:
 DESCRIPTION:     Circle item class.
-KNOWN ISSUES:     Not implemented.
+KNOWN ISSUES:    *> Will crash if anything in OpenGL shaders fails.
 '''
 
 from helpers import getRandomNormalizedColor, load_GLshaders
@@ -27,9 +20,9 @@ class Circle:
 
         self.color = getRandomNormalizedColor()
         
-    #Load static shaders    
+    #Load static shaders. Since we can't help if this fails, ignore exceptions. 
     shaders=load_GLshaders()
-
+    
     def contains(self, point):
         return (point[0]-self.x)*(point[0]-self.x)+(point[1]-self.y)*(point[1]-self.y) <= self.radius*self.radius
 

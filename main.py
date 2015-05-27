@@ -1,8 +1,8 @@
 '''
-AUTHOR:                 principio
+AUTHOR:         principio
 LAST EDITED:
 DESCRIPTION:    This is the main class of a simple collision detection demo
-                        written in Python (Pyglet framework)
+                written in Python (Pyglet framework). 
 KNOWN ISSUES:   Implementation imcomplete.
 '''
 
@@ -27,7 +27,7 @@ class MainWindow(pyglet.window.Window):
         self.fullscreen_flag = False
 
         glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)       #Enable alpha blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)       #Blend alpha so that the more shapes overlap, the less transparent the intersection area.
 
         pyglet.clock.set_fps_limit(const.FPS)
 
@@ -35,10 +35,21 @@ class MainWindow(pyglet.window.Window):
         self.dragged_items = [] #Items being dragged by the user
 
     def add_item(self, item):
-        if(hasattr(item, "render")):
+        if(isinstance(item, (Rectangle, Circle))):
             self.items.append(item)
-            return True
-        return False
+            self.check_collisions()
+        else:
+            raise NotImplementedError("Only Shape subclasses can be added to scene.")
+    
+    def check_collisions(self):
+        for item in self.items:
+            collided_items = item.collidedItems(self.items)
+            if(len(collided_items)>0):
+                item.setCollided(True)
+                for collided_item in collided_items:
+                    collided_item.setCollided()
+            else:
+                item.setCollided(False)
 
     def on_draw(self):
         self.clear()
@@ -54,14 +65,8 @@ class MainWindow(pyglet.window.Window):
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         for item in self.dragged_items:
             item.move((dx, dy))
-        for item in self.items:
-            collided_items = item.collided(self.items)
-            if(len(collided_items)>0):
-                item.setCollided(True)
-                for collided_item in collided_items:
-                    collided_item.setCollided()
-            else:
-                item.setCollided(False)
+        self.check_collisions()
+
                 
     def on_mouse_release(self, x, y, button, modifiers):
         self.dragged_items.clear()
