@@ -16,9 +16,8 @@ def getRandomColor():
     return tuple([round(uniform (const.COLOR_LOWEST, const.COLOR_HIGHEST)) for i in range(3)])+ (const.COLOR_ALPHA,)
 
 #As opposed to getRandomColor(), this returns an OpenGL-ready color tuple normalized to [0...1]
-def getRandomNormalizedColor():
-    color = getRandomColor()
-    return (color[0]/255, color[1]/255, color[2]/255, color[3]/255)
+def normalize(vector, factor=255):
+    return [i/factor for i in vector]
 
 #This is 
 def load_GLshaders(vertex_src=const.VERTEX_SHADER_SRC, fragment_src=const.FRAGMENT_SHADER_SRC):

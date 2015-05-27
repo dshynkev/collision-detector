@@ -10,10 +10,10 @@ import constants as const
 from helpers import getRandomColor
 
 from pyglet.graphics import draw
-from pyglet.gl import GL_QUADS, glColor4f
-from circle import *
+from pyglet.gl import GL_QUADS, GL_LINE_LOOP, glLineWidth, glColor4f
+from abstractshape import AbstractShape
 
-class Rectangle:
+class Rectangle(AbstractShape):
     def __init__(self, origin, width, height):
         self.x, self.y = origin
         self.width = width
@@ -27,6 +27,7 @@ class Rectangle:
     def render(self):
         draw(4, GL_QUADS, ('v2f', self.vertex), ('c4B', self.color*4))  #4x 2D vertices
         if(self.colliding):
+            glLineWidth(const.BORDER_WIDTH)
             draw(4, GL_LINE_LOOP, ('v2f', self.vertex), ('c4B', const.COLOR_COLLIDING*4))  #If colliding, draw a border
 
     def contains(self, point):
@@ -37,24 +38,15 @@ class Rectangle:
         self.x+=trans[0]
         self.y+=trans[1]
         self.vertex=self._make_vertex_list()
-        
-    def collidedItems(self, items):
-        collided_items=[]
-        for item in items:
-            if(not item == self and self._check_collide(item)):
-                collided_items.append(item)
-        return collided_items
             
     def setCollided(self, state=True):
         self.colliding=state
             
-    def _check_collide(self, item):
-        if(isinstance(item, Rectangle)):
+    def check_collide(self, item):
+        if(type(self) is type(item)):
             return self._check_collide_rect(item)
-        elif(isinstance(item, Circle)):
-            return False    #TODO: Implement
         else:
-            raise NotImplementedError("Only rectangle and circle collisions are supported.")
+            return False    #TODO: Implement
         
     def _check_collide_rect(self, item):
         return  (((self.x>=item.x and self.x<=item.x+item.width) or    #X1...x3...X2
@@ -64,6 +56,6 @@ class Rectangle:
 
     def _make_vertex_list(self):
         return (self.x, self.y, # 4 vertices clockwise
-                        self.x+self.width, self.y,
-                        self.x+self.width, self.y+self.height,
-                        self.x, self.y+self.height)
+                self.x+self.width, self.y,
+                self.x+self.width, self.y+self.height,
+                self.x, self.y+self.height)

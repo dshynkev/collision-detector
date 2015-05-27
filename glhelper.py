@@ -52,7 +52,7 @@ class Shader:
             log = create_string_buffer(status.value)
             glGetShaderInfoLog(shader, status, None, log)
             
-            raise Exception(log)
+            raise Exception("Compiling shaders failed: {0}".format(log.value))
         else:
             # If all is well, attach the shader to the program
             glAttachShader(self.handle, shader);
@@ -71,7 +71,7 @@ class Shader:
             log = create_string_buffer(status.value)
             glGetProgramInfoLog(self.handle, status, None, log)
             
-            raise Exception(log)
+            raise Exception("Linking shaders failed {0}".format(log.value))
         else:
             self.linked = True
 
@@ -81,7 +81,7 @@ class Shader:
     # Since we don't really care which program is bound when we unbind it,
     # this doesn't require an instance to be called on.
     @classmethod
-    def unbind():
+    def unbind(self):
         glUseProgram(0)
 
     # Upload a float or a vector of floats as a uniform

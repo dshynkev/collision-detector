@@ -13,6 +13,8 @@ FRAGMENT_SHADER_SRC="fragment.frag"
 MAIN_TITLE="Collision detector"
 MAIN_MIN_SIZE = (100, 100)  #Width could be larger, depending on the window dectorations. Let the WM handle that.
 
+BORDER_WIDTH = 2.0
+
 COLOR_WHITE = (255, 255, 255, 255)
 COLOR_BLACK = (0, 0, 0, 255)
 COLOR_RED = (255, 0, 0, 255)

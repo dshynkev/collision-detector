@@ -35,11 +35,11 @@ class MainWindow(pyglet.window.Window):
         self.dragged_items = [] #Items being dragged by the user
 
     def add_item(self, item):
-        if(isinstance(item, (Rectangle, Circle))):
+        if(issubclass(type(item), AbstractShape)):
             self.items.append(item)
             self.check_collisions()
         else:
-            raise NotImplementedError("Only Shape subclasses can be added to scene.")
+            raise NotImplementedError("Only Shape subclasses can be added to this scene.")
     
     def check_collisions(self):
         for item in self.items:
@@ -47,7 +47,7 @@ class MainWindow(pyglet.window.Window):
             if(len(collided_items)>0):
                 item.setCollided(True)
                 for collided_item in collided_items:
-                    collided_item.setCollided()
+                    collided_item.setCollided(True)
             else:
                 item.setCollided(False)
 
@@ -69,13 +69,20 @@ class MainWindow(pyglet.window.Window):
 
                 
     def on_mouse_release(self, x, y, button, modifiers):
-        self.dragged_items.clear()
+        if(button ==  mouse.LEFT):        
+            self.dragged_items.clear()
 
     def on_key_press(self, symbol, modifiers):
+        #On CTRL+F, toggle fullscreen
         if(modifiers and key.MOD_CTRL):
             if(symbol == key.F):
                 self.fullscreen_flag = ~self.fullscreen_flag
                 self.set_fullscreen(self.fullscreen_flag)
+        #On delete, remove all items that are currently being dragged
+        if(symbol == key.DELETE):
+            for item in self.dragged_items:
+                self.items.remove(item)
+        #Dispatch default closing event on escape.
         if(symbol == key.ESCAPE):
             window.dispatch_event('on_close')
 
@@ -84,4 +91,7 @@ if (__name__=="__main__"):
     window.add_item(Rectangle((10, 10), 200, 300))
     window.add_item(Rectangle((20, 20), 100, 200))
     window.add_item(Rectangle((150, 150), 100, 400))
+    window.add_item(Circle((150, 150), 100))
+    window.add_item(Circle((350, 350), 300))
+    
     pyglet.app.run()
