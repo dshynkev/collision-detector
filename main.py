@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:
+LAST EDITED:	2015-05-27 23:38:07
 DESCRIPTION:    This is the main class of a simple collision detection demo
                 written in Python (Pyglet framework). 
 KNOWN ISSUES:   Implementation imcomplete.

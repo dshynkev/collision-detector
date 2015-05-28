@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:
+LAST EDITED:	2015-05-28 00:12:25
 DESCRIPTION:    This holds the constants that pertain to this program
 KNOWN ISSUES:
 '''
