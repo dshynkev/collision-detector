@@ -23,7 +23,7 @@ class Circle(AbstractShape):
         self.fill_color = normalize(getRandomColor())
         self.color = self.fill_color
         
-    #Load static shaders. Since we can't help if this fails, ignore exceptions. 
+    #Load static shaders. Since we have no fallback option if this fails, ignore exceptions. 
     shaders=load_GLshaders()
     
     def contains(self, point):
@@ -43,10 +43,11 @@ class Circle(AbstractShape):
         scalex,scaley=window.get_size()        
         scalex = 2/scalex
         scaley = 2/scaley
-        relative_scalex = scalex*self.radius
-        relative_scaley = scaley*self.radius
+        relative_scalex = scalex*(self.radius + const.BORDER_WIDTH + const.SMOOTH_WIDTH)
+        relative_scaley = scaley*(self.radius + const.BORDER_WIDTH + const.SMOOTH_WIDTH)
         self.shaders.uniformf(b'center', (-1+self.x*scalex)/relative_scalex, (-1+self.y*scaley)/relative_scaley)
         self.shaders.uniformf(b'paintBorder', 2.0 if self.colliding else 0.0)
+        self.shaders.uniformf(b'smoothWidth', const.SMOOTH_WIDTH)
         self.shaders.uniformf(b'borderWidth', const.BORDER_WIDTH)
         self.shaders.uniformf(b'circleColor',  *self.color)
         self.shaders.uniformf(b'borderColor', *normalize(const.COLOR_COLLIDING))        
