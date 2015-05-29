@@ -1,6 +1,6 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-05-28 00:09:01
+LAST EDITED:	2015-05-28 23:42:44
 DESCRIPTION:     Circle item class.
 KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails.
 '''
@@ -16,51 +16,59 @@ from abstractshape import *
 
 class Circle(AbstractShape):
     def __init__(self, center, radius):
-        self.x = center[0]
-        self.y = center[1]
+        super().__init__(*center)        
+
         self.radius = radius
 
-        self.fill_color = normalize(getRandomColor())
-        self.color = self.fill_color
+        # Normalization needed for OpenGL color model (vec4([0...1]))
+        self.color = normalize(getRandomColor())
         
-    #Load static shaders. Since we have no fallback option if this fails, ignore exceptions. 
+    #Load static shaders. Since we have no fallback option if this fails, ignore all exceptions. 
     shaders=load_GLshaders()
     
     def contains(self, point):
-        return (point[0]-self.x)*(point[0]-self.x)+(point[1]-self.y)*(point[1]-self.y) <= self.radius*self.radius
-
-    def move(self, trans):
-        self.x+=trans[0]
-        self.y+=trans[1]
-        
-    def setCollided(self, state=True):
-        self.colliding=state
+        return (point[0]-self.x)*(point[0]-self.x)+(point[1]-self.y)*(point[1]-self.y) <= self.radius*self.radius   # (x-m)^2+(y-n)^2 <= R^2
     
     def render(self):
+        self.colliding = (len(self.colliding_items) > 0)        
+        
         self.shaders.bind()
-        for window in pyglet.app.windows:
+        
+        for window in pyglet.app.windows:   # Get last window in set: there should be only one, namely, our main window
             pass
-        scalex,scaley=window.get_size()        
+        scalex,scaley=window.get_size()     # Set scale factors to width/height reciprocals: this will map pixels to OpenGL coordinates
         scalex = 2/scalex
         scaley = 2/scaley
-        relative_scalex = scalex*(self.radius + const.BORDER_WIDTH + const.SMOOTH_WIDTH)
-        relative_scaley = scaley*(self.radius + const.BORDER_WIDTH + const.SMOOTH_WIDTH)
+        
+        relative_scalex = scalex*(self.radius + const.SMOOTH_WIDTH)     # Determine relative scale factors: scale with respect to radius
+        relative_scaley = scaley*(self.radius + const.SMOOTH_WIDTH)     # We add smooth_width here because the transition ring is also part of the circle
+        
+        self.shaders.uniformi(b'paintBorder', self.colliding)   # Whether the border should be painted
+        
+        # Center is mapped to correct offset (coords start from center, so -1+coord is its translation to lower left corner, where Pyglet coords start)
+        # We divide center coords by relative scale factors, because they are NOT to be scaled with respect to radius, only distances are.
         self.shaders.uniformf(b'center', (-1+self.x*scalex)/relative_scalex, (-1+self.y*scaley)/relative_scaley)
-        self.shaders.uniformf(b'paintBorder', 2.0 if self.colliding else 0.0)
+        
         self.shaders.uniformf(b'smoothWidth', const.SMOOTH_WIDTH)
         self.shaders.uniformf(b'borderWidth', const.BORDER_WIDTH)
+        
         self.shaders.uniformf(b'circleColor',  *self.color)
-        self.shaders.uniformf(b'borderColor', *normalize(const.COLOR_COLLIDING))        
+        self.shaders.uniformf(b'borderColor', *normalize(const.COLOR_COLLIDING))
+        
+        # Now, all distances will be scaled with respect to the radius of the circle.
         self.shaders.uniform_matrixf(b'scaleMatrix', [relative_scalex, 0, 0, 0,\
                                                      0, relative_scaley, 0, 0,\
                                                      0, 0, 1, 0,\
                                                      0, 0, 0, 1])
 
+        # Create a texture, that, when translated to (-1,-1), the Pyglet coord origin, will cover the entire scene (we will scale it later in shaders).
         tex=pyglet.image.Texture.create(2, 2)
+        # ...and translate it as needed.        
         tex.blit(-1, -1)
+        
         self.shaders.unbind()    
 
-    def check_collide(self, item):
+    def collidingWith(self, item):
         if(type(self) is type(item)):
             return self._check_collide_circle(item)
         else:

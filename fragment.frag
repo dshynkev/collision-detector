@@ -1,7 +1,5 @@
 #version 400
 
-#define SMOOTH_FACTOR 2
-
 //The coordinate of current texel.
 in vec2 fPos;
 
@@ -12,7 +10,7 @@ uniform vec4 circleColor;
 uniform vec4 borderColor;
 
 // Whether a border should be painted
-uniform float paintBorder;
+uniform bool paintBorder;
 
 // Width of the border in pixels.
 uniform float borderWidth;
@@ -33,26 +31,20 @@ void main()
 	float border = fwidth(dist)*borderWidth;
 	float outer = fwidth(dist)*smoothWidth;
 
-	if(paintBorder<1)
+	// alpha_main indicates the stage of circle/border->void transition
+	float alpha_main = smoothstep(1-outer, 1, dist);
+	
+	if(paintBorder)
 	{
-		// If dist is within 1-2delta...1, dist will hold a value [0...1], describing a stage of smooth transition.
-		float alpha = smoothstep(1-border-outer, 1-border, dist);
-
-		// Mix target color with transparent in proportion alpha.
-		fColor = mix(circleColor, vec4(0.0, 0.0, 0.0, 0.0), alpha);
-	}
-	else
-	{
-		// alpha_main is now the outer rim, border->void transition
-		float alpha_main = smoothstep(1-outer, 1, dist);
-		
 		// alpha_border indicates the stage of circle->border transition
 		float alpha_border = smoothstep(1-border-outer, 1-outer, dist);
 
 		// Mix circle with border
-		vec4 color = mix(circleColor, borderColor, alpha_border);
+		fColor = mix(circleColor, borderColor, alpha_border);
 		
 		// Mix border with void
-		fColor = mix(color, vec4(0.0, 0.0, 0.0, 0.0), alpha_main);
+		fColor = mix(fColor, vec4(0.0, 0.0, 0.0, 0.0), alpha_main);
 	}
+	else
+		fColor = mix(circleColor, vec4(0.0, 0.0, 0.0, 0.0), alpha_main);
 }

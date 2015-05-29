@@ -5,7 +5,7 @@
 # (see http://www.boost.org/LICENSE_1_0.txt)
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-27 23:38:07
+LAST EDITED:	2015-05-28 22:28:09
 DESCRIPTION:    OpenGL shader program convenience class.
 KNOWN ISSUES:   * VERY liberal in terms of error-checking; better pray that nothing fails.
                 * Barely tested
@@ -83,7 +83,19 @@ class Shader:
     @classmethod
     def unbind(self):
         glUseProgram(0)
-
+    
+    # Upload an integer or a vector of integers as a uniform
+    def uniformi(self, name, *vals):
+        if len(vals) in range(1, 5):
+            # Select the correct function
+            { 1 : glUniform1i,
+                2 : glUniform2i,
+                3 : glUniform3i,
+                4 : glUniform4i
+                # Retrieve the uniform location, and set
+            }[len(vals)](glGetUniformLocation(self.handle, name), *vals)
+            
+    
     # Upload a float or a vector of floats as a uniform
     def uniformf(self, name, *vals):
         if len(vals) in range(1, 5):
