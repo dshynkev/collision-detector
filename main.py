@@ -68,7 +68,6 @@ class MainWindow(pyglet.window.Window):
             item.move((dx, dy))
         self.check_collisions(self.dragged_items)
 
-    
     def on_mouse_release(self, x, y, button, modifiers):
         if(button ==  mouse.LEFT):        
             self.dragged_items.clear()
@@ -86,6 +85,16 @@ class MainWindow(pyglet.window.Window):
         #Dispatch default closing event on escape.
         if(symbol == key.ESCAPE):
             window.dispatch_event('on_close')
+            
+        def on_resize(self, width, height):
+            glViewport(0, 0, width, height)
+            glMatrixMode(gl.GL_PROJECTION)
+            glLoadIdentity()
+            glOrtho(0, width, 0, height, -1, 1)
+            glMatrixMode(gl.GL_MODELVIEW)      
+            
+            AbstractShape.newScreenBounds(width, height) 
+        
 
 if (__name__=="__main__"):
     window = MainWindow()

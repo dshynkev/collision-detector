@@ -16,7 +16,10 @@ from abstractshape import *
 
 class Circle(AbstractShape):
     def __init__(self, center, radius):
-        super().__init__(*center)        
+        super().__init__(center[0]-radius, center[1]-radius, radius*2, radius*2)
+        
+        self.x=x
+        self.y=y        
 
         self.radius = radius
 

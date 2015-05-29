@@ -15,10 +15,12 @@ from abstractshape import AbstractShape
 
 class Rectangle(AbstractShape):
     def __init__(self, origin, width, height):
-        super().__init__(*origin)        
-
+        super().__init__(origin[0], origin[1], width, height)
+        
+        self.x=x
+        self.y=y
         self.width = width
-        self.height = height
+        self.height = height          
 
         self.color = getRandomColor()
 

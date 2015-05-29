@@ -10,17 +10,38 @@ class AbstractShape:
     # methods that will be invoked from the main module and, therefore, have to be implemented.
     
     # Every item is defined by at least a pair of coords.
+    # These coords and width and height, as far as this class is concerned,
+    # delimit a bounding rect for this shape.
     # Generally, all shape-independent stuff goes here.    
-    def __init__(self, x, y):
-        self.x=x
-        self.y=y
+    def __init__(self, x, y, width, height):
+        self.bounding_x=x
+        self.bounding_y=y
+        self.bounding_width = width
+        self.bounding_height = height
 
         self.colliding_items=[]
         self.colliding = False
+        
+    self.SCENE_WIDTH=100
+    self.SCENE_HEIGHT=100
     
-    def move(self, trans):
-        self.x+=trans[0]
-        self.y+=trans[1]
+    @classmethod
+    def newScreenBounds(self, width, height):
+        self.SCENE_WIDTH=width
+        self.SCENE_HEIGHT=height
+    
+    def adjust_bounds(self, trans):
+        if(self.bounding_x<0):
+            self.moveBy(-self.bounding_x)
+        if(self.bounding_y<0):
+            self.moveBy(-self.bounding_y)
+            
+        x_overflow = self.bounding_x+self.bounding_width - self.SCENE_WIDTH 
+        y_overflow = self.bounding_x+self.bounding_height - self.SCENE_HEIGHT
+        if(x_overflow>0):
+            self.moveBy(-x_overflow)
+        if(y_overflow>0):
+            self.moveBy(-y_overflow)
         
     def accelerate(self, vector):
         raise NotImplementedError
