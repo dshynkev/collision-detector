@@ -18,8 +18,7 @@ class Circle(AbstractShape):
     def __init__(self, center, radius):
         super().__init__(center[0]-radius, center[1]-radius, radius*2, radius*2)
         
-        self.x=x
-        self.y=y        
+        self.x, self.y = center        
 
         self.radius = radius
 
@@ -31,17 +30,18 @@ class Circle(AbstractShape):
     
     def contains(self, point):
         return (point[0]-self.x)*(point[0]-self.x)+(point[1]-self.y)*(point[1]-self.y) <= self.radius*self.radius   # (x-m)^2+(y-n)^2 <= R^2
+        
+    def _moveBy(self, trans_vector):
+        self.x+=trans_vector[0]
+        self.y+=trans_vector[1]
     
     def render(self):
         self.colliding = (len(self.colliding_items) > 0)        
         
         self.shaders.bind()
-        
-        for window in pyglet.app.windows:   # Get last window in set: there should be only one, namely, our main window
-            pass
-        scalex,scaley=window.get_size()     # Set scale factors to width/height reciprocals: this will map pixels to OpenGL coordinates
-        scalex = 2/scalex
-        scaley = 2/scaley
+             
+        scalex = 2/self.SCENE_WIDTH    # Set scale factors to width/height reciprocals: this will map pixels to OpenGL coordinates
+        scaley = 2/self.SCENE_HEIGHT
         
         relative_scalex = scalex*(self.radius + const.SMOOTH_WIDTH)     # Determine relative scale factors: scale with respect to radius
         relative_scaley = scaley*(self.radius + const.SMOOTH_WIDTH)     # We add smooth_width here because the transition ring is also part of the circle
@@ -69,7 +69,7 @@ class Circle(AbstractShape):
         # ...and translate it as needed.        
         tex.blit(-1, -1)
         
-        self.shaders.unbind()    
+        self.shaders.unbind()
 
     def collidingWith(self, item):
         if(type(self) is type(item)):

@@ -2,9 +2,10 @@
 AUTHOR:         principio
 LAST EDITED:	2015-05-28 22:24:08
 DESCRIPTION:    SAT colllision detection utilities
-KNOWN ISSUES:   For the sake of sanity, must be imported by name.
+KNOWN ISSUES:   Not implemented.
 '''
 
+# 
 def _get_polygon_normals(polygon):
     normals = []
     for v1, v2 in polygon:

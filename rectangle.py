@@ -17,12 +17,19 @@ class Rectangle(AbstractShape):
     def __init__(self, origin, width, height):
         super().__init__(origin[0], origin[1], width, height)
         
-        self.x=x
-        self.y=y
+        self.x, self.y = origin
         self.width = width
         self.height = height          
 
         self.color = getRandomColor()
+        
+    def contains(self, point):
+        return (self.x<=point[0]) and (self.x+self.width>=point[0])\
+                        and (self.y<=point[1]) and (self.y+self.height>=point[1]) #If X1...x...X2 and Y1...y...Y2.
+    
+    def _moveBy(self, trans_vector):
+        self.x+=trans_vector[0]
+        self.y+=trans_vector[1]
 
     def render(self):
         # If more than one colliding item, set a respective flag
@@ -35,10 +42,6 @@ class Rectangle(AbstractShape):
         if(self.colliding):
             glLineWidth(const.BORDER_WIDTH)
             draw(4, GL_LINE_LOOP, ('v2f', self.vertex), ('c4B', const.COLOR_COLLIDING*4))  #If colliding, draw a border
-
-    def contains(self, point):
-        return (self.x<=point[0]) and (self.x+self.width>=point[0])\
-                        and (self.y<=point[1]) and (self.y+self.height>=point[1]) #If X1...x...X2 and Y1...y...Y2.
             
     def collidingWith(self, item):
         if(type(self) is type(item)):

@@ -5,6 +5,9 @@ DESCRIPTION:     Shape parentclass. All shapes should subclass this.
 KNOWN ISSUES:
 '''
 
+import pyglet.app
+
+
 class AbstractShape:
     # This implements general collision-related abstractions and 'declares'
     # methods that will be invoked from the main module and, therefore, have to be implemented.
@@ -22,33 +25,47 @@ class AbstractShape:
         self.colliding_items=[]
         self.colliding = False
         
-    self.SCENE_WIDTH=100
-    self.SCENE_HEIGHT=100
     
     @classmethod
-    def newScreenBounds(self, width, height):
-        self.SCENE_WIDTH=width
-        self.SCENE_HEIGHT=height
+    def newScreenBounds(this, width, height):
+        this.SCENE_WIDTH=width
+        this.SCENE_HEIGHT=height
+        
+    # For an arbitrary 2D shape, parallel translation by a vector is well-defined.
+    # moveTo(point), however, is not (what is the anchor point of a pentagon, for instance?)
+    # Therefore, external code can only use this subroutine for shape translation.
+    def moveBy(self, trans_vector):
+        self._moveBy(trans_vector)      # Move the item itself
+        self.moveBoundsBy(trans_vector) # Move bounding rect accordingly
+        self.adjustBounds()             # Make sure the shape stays in current window
+        
+    def moveBoundsBy(self, trans_vector):
+        self.bounding_x+=trans_vector[0]
+        self.bounding_y+=trans_vector[1]
     
-    def adjust_bounds(self, trans):
+    # Returns whether 
+    def adjustBounds(self):
+        # If the item cannot fit in given bounds, give up ()
+        if(self.bounding_width > self.SCENE_WIDTH
+            or self.bounding_height > self.SCENE_HEIGHT):
+            return False
+        
+        adjust_vector = [0, 0]        
+        
         if(self.bounding_x<0):
-            self.moveBy(-self.bounding_x)
+            adjust_vector[0] += -self.bounding_x
         if(self.bounding_y<0):
-            self.moveBy(-self.bounding_y)
+            adjust_vector[1] += -self.bounding_y
             
         x_overflow = self.bounding_x+self.bounding_width - self.SCENE_WIDTH 
-        y_overflow = self.bounding_x+self.bounding_height - self.SCENE_HEIGHT
+        y_overflow = self.bounding_y+self.bounding_height - self.SCENE_HEIGHT
         if(x_overflow>0):
-            self.moveBy(-x_overflow)
+            adjust_vector[0] += -x_overflow
         if(y_overflow>0):
-            self.moveBy(-y_overflow)
-        
-    def accelerate(self, vector):
-        raise NotImplementedError
-    def contains(self, point):
-        raise NotImplementedError
-    def collidingWith(self, item):
-        raise NotImplementedError
+            adjust_vector[1] += -y_overflow
+        if(adjust_vector != [0,0]):   
+            self.moveBy(adjust_vector)
+        return True
     
     def getCollidingItems(self, items):
         colliding_items = []        
@@ -81,6 +98,3 @@ class AbstractShape:
             if item not in self.colliding_items:
                 item.adviseCollision(self)
                 self.colliding_items.append(item)
-    
-    def render(self):
-        raise NotImplementedError

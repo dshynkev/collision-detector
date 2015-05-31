@@ -3,9 +3,9 @@ AUTHOR:         principio
 LAST EDITED:	2015-05-28 23:51:44
 DESCRIPTION:    This is the main class of a simple collision detection demo
                 written in Python (Pyglet framework). 
-KNOWN ISSUES:   Implementation imcomplete.
+KNOWN ISSUES:   *> Segfaults on the only Windows machine I have at my disposal. Appears to be a Python issue.
+                *> On Linux/X11, going fullscreen will sometimes mess up the picture. Dragging any item helps.
 '''
-
 
 import pyglet
 from pyglet.gl import *
@@ -26,13 +26,15 @@ class MainWindow(pyglet.window.Window):
         self.set_caption(const.MAIN_TITLE)
         self.fullscreen_flag = False
 
+        # Blend alpha so that the more shapes overlap, the less transparent the intersection area.
         glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)       # Blend alpha so that the more shapes overlap, the less transparent the intersection area.
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         pyglet.clock.set_fps_limit(const.FPS)
 
-        self.items = []     # Here be all items rendered within this window
-        self.dragged_items = [] #I tems being dragged by the user
+        self.items = []             # All items rendered within this window
+        self.dragged_items = []     # Items being dragged at the moment
+        self.multidrag_flag=True    # Whether all overlapping items or only the uppermost one shoulds be dragged.
 
     def add_item(self, item):
         if(issubclass(type(item), AbstractShape)):
@@ -55,9 +57,11 @@ class MainWindow(pyglet.window.Window):
     # can only be invoked on them while they are being dragged.
     def on_mouse_press(self, x, y, button, modifiers):
         if(button ==  mouse.LEFT):
-            for item in self.items:
+            for item in self.items[::-1]:   #Start with the uppermost item
                 if(item.contains((x, y))):
                     self.dragged_items.append(item)
+                    if(not self.multidrag_flag):    # If no multidrag, return when found the uppermost selected item
+                        return True
     
     # Moves selected items with the cursor. Performance would benefit from, moving the
     # collision detection to on_draw(), since no one cares about collisions unless
@@ -65,7 +69,7 @@ class MainWindow(pyglet.window.Window):
     # that the button will be realeased in between two on_draw()'s. Better play it safe.
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         for item in self.dragged_items:
-            item.move((dx, dy))
+            item.moveBy((dx, dy))
         self.check_collisions(self.dragged_items)
 
     def on_mouse_release(self, x, y, button, modifiers):
@@ -73,27 +77,37 @@ class MainWindow(pyglet.window.Window):
             self.dragged_items.clear()
 
     def on_key_press(self, symbol, modifiers):
-        #On CTRL+F, toggle fullscreen
         if(modifiers and key.MOD_CTRL):
+            # On CTRL+F, toggle fullscreen
             if(symbol == key.F):
-                self.fullscreen_flag = ~self.fullscreen_flag
+                self.fullscreen_flag = not self.fullscreen_flag
                 self.set_fullscreen(self.fullscreen_flag)
-        #On delete, remove all items that are currently being dragged
+            # On CTRL+M, toggle multidrag
+            if(symbol == key.M):
+                self.multidrag_flag = not self.multidrag_flag
+            # On CTRL+Q, exit
+            if(symbol == key.Q):
+                window.dispatch_event('on_close')
+        # On Delete, remove all items that are currently being dragged
         if(symbol == key.DELETE):
             for item in self.dragged_items:
                 self.items.remove(item)
-        #Dispatch default closing event on escape.
+        # Dispatch default closing event on Escape.
         if(symbol == key.ESCAPE):
             window.dispatch_event('on_close')
             
-        def on_resize(self, width, height):
-            glViewport(0, 0, width, height)
-            glMatrixMode(gl.GL_PROJECTION)
-            glLoadIdentity()
-            glOrtho(0, width, 0, height, -1, 1)
-            glMatrixMode(gl.GL_MODELVIEW)      
-            
-            AbstractShape.newScreenBounds(width, height) 
+    def on_resize(self, width, height):
+        # Resize GL viewport
+        glViewport(0, 0, width, height)
+        glMatrixMode(gl.GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, width, 0, height, -1, 1)
+        glMatrixMode(gl.GL_MODELVIEW) 
+        
+        # Inform all items of the new dimensions and adjust their positions accordingly
+        AbstractShape.newScreenBounds(width, height)
+        for item in self.items:
+            item.adjustBounds()
         
 
 if (__name__=="__main__"):
@@ -102,5 +116,5 @@ if (__name__=="__main__"):
     window.add_item(Rectangle((20, 20), 100, 120))
     window.add_item(Rectangle((50, 50), 400, 200))
     window.add_item(Circle((150, 150), 100))
-    window.add_item(Circle((350, 350), 300))
+    window.add_item(Circle((250, 250), 300))
     pyglet.app.run()
