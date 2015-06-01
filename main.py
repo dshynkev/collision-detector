@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-28 23:51:44
+LAST EDITED:	2015-05-31 23:37:09
 DESCRIPTION:    This is the main class of a simple collision detection demo
                 written in Python (Pyglet framework). 
 KNOWN ISSUES:   *> Segfaults on the only Windows machine I have at my disposal. Appears to be a Python issue.
@@ -15,6 +15,7 @@ import constants as const
 
 from rectangle import *
 from circle import *
+from polygon import *
 
 class MainWindow(pyglet.window.Window):
     def __init__(self):
@@ -22,7 +23,7 @@ class MainWindow(pyglet.window.Window):
                                             # without passing the flag to parent constructor
         self.maximize()             # Start maximized
 
-        self.set_minimum_size(const.MAIN_MIN_SIZE[0], const.MAIN_MIN_SIZE[1])
+        self.set_minimum_size(*const.MAIN_MIN_SIZE)
         self.set_caption(const.MAIN_TITLE)
         self.fullscreen_flag = False
 
@@ -37,7 +38,7 @@ class MainWindow(pyglet.window.Window):
         self.multidrag_flag=True    # Whether all overlapping items or only the uppermost one shoulds be dragged.
 
     def add_item(self, item):
-        if(issubclass(type(item), AbstractShape)):
+        if(issubclass(type(item), Shape)):
             self.items.append(item)
             self.check_collisions([item])
         else:
@@ -58,7 +59,7 @@ class MainWindow(pyglet.window.Window):
     def on_mouse_press(self, x, y, button, modifiers):
         if(button ==  mouse.LEFT):
             for item in self.items[::-1]:   #Start with the uppermost item
-                if(item.contains((x, y))):
+                if(item.contains(geometry.Point(x, y))):
                     self.dragged_items.append(item)
                     if(not self.multidrag_flag):    # If no multidrag, return when found the uppermost selected item
                         return True
@@ -69,7 +70,7 @@ class MainWindow(pyglet.window.Window):
     # that the button will be realeased in between two on_draw()'s. Better play it safe.
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         for item in self.dragged_items:
-            item.moveBy((dx, dy))
+            item.moveBy(geometry.Vector(dx, dy))
         self.check_collisions(self.dragged_items)
 
     def on_mouse_release(self, x, y, button, modifiers):
@@ -92,6 +93,7 @@ class MainWindow(pyglet.window.Window):
         if(symbol == key.DELETE):
             for item in self.dragged_items:
                 self.items.remove(item)
+            self.check_collisions(self.items)
         # Dispatch default closing event on Escape.
         if(symbol == key.ESCAPE):
             window.dispatch_event('on_close')
@@ -105,16 +107,19 @@ class MainWindow(pyglet.window.Window):
         glMatrixMode(gl.GL_MODELVIEW) 
         
         # Inform all items of the new dimensions and adjust their positions accordingly
-        AbstractShape.newScreenBounds(width, height)
+        Shape.newScreenBounds(width, height)
         for item in self.items:
             item.adjustBounds()
         
 
 if (__name__=="__main__"):
     window = MainWindow()
-    window.add_item(Rectangle((10, 10), 200, 300))
-    window.add_item(Rectangle((20, 20), 100, 120))
-    window.add_item(Rectangle((50, 50), 400, 200))
-    window.add_item(Circle((150, 150), 100))
-    window.add_item(Circle((250, 250), 300))
+    window.add_item(Rectangle(geometry.Point(10, 10), 200, 300))
+    window.add_item(Rectangle(geometry.Point(20, 20), 100, 120))
+    window.add_item(Rectangle(geometry.Point(50, 50), 400, 200))
+    window.add_item(Circle(geometry.Point(150, 150), 100))
+    window.add_item(Circle(geometry.Point(250, 250), 300))
+    #window.add_item(Polygon(list(map(geometry.Point.fromTuple, [[250, 250], [200, 300], [150, 200], [200, 50], [250, 0]]))))
+    window.add_item(Polygon(list(map(geometry.Point.fromTuple, [[400, 300], [300, 300], [350, 400]]))))
+    window.add_item(Polygon(list(map(geometry.Point.fromTuple, [[400, 200], [400, 400], [600, 400], [600, 200]]))))
     pyglet.app.run()

@@ -1,11 +1,11 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-28 00:34:18
+LAST EDITED:	2015-05-31 23:06:26
 DESCRIPTION:    This holds the constants that pertain to this program
 KNOWN ISSUES:
 '''
 
-FPS = 30    #Smooth enough on my machine, subject to decrement if drawing code becomes too bloated.
+FPS = 120    #Smooth enough on my machine, subject to decrement if drawing code becomes too bloated.
 
 VERTEX_SHADER_SRC="vertex.vert"
 FRAGMENT_SHADER_SRC="fragment.frag"

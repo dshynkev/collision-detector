@@ -1,26 +1,24 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-05-28 23:42:44
+LAST EDITED:	2015-05-31 22:39:54
 DESCRIPTION:     Circle item class.
 KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails.
 '''
 
 from helpers import getRandomColor, normalize, load_GLshaders
 import constants as const
+import geometry
 
 import pyglet, math
 from pyglet.gl import *
 from glhelper import *
 
-from abstractshape import *
+from shape import *
 
-class Circle(AbstractShape):
+class Circle(Shape, geometry.Circle):
     def __init__(self, center, radius):
-        super().__init__(center[0]-radius, center[1]-radius, radius*2, radius*2)
-        
-        self.x, self.y = center        
-
-        self.radius = radius
+        Shape.__init__(self, geometry.Point(center.x-radius, center.y-radius), radius*2, radius*2)
+        geometry.Circle.__init__(self, center, radius)
 
         # Normalization needed for OpenGL color model (vec4([0...1]))
         self.color = normalize(getRandomColor())
@@ -28,16 +26,7 @@ class Circle(AbstractShape):
     #Load static shaders. Since we have no fallback option if this fails, ignore all exceptions. 
     shaders=load_GLshaders()
     
-    def contains(self, point):
-        return (point[0]-self.x)*(point[0]-self.x)+(point[1]-self.y)*(point[1]-self.y) <= self.radius*self.radius   # (x-m)^2+(y-n)^2 <= R^2
-        
-    def _moveBy(self, trans_vector):
-        self.x+=trans_vector[0]
-        self.y+=trans_vector[1]
-    
     def render(self):
-        self.colliding = (len(self.colliding_items) > 0)        
-        
         self.shaders.bind()
              
         scalex = 2/self.SCENE_WIDTH    # Set scale factors to width/height reciprocals: this will map pixels to OpenGL coordinates
@@ -73,10 +62,6 @@ class Circle(AbstractShape):
 
     def collidingWith(self, item):
         if(type(self) is type(item)):
-            return self._check_collide_circle(item)
+            return geometry.check_collide_circles(self, item)
         else:
             return False    #TODO: Implement
-        
-    def _check_collide_circle(self, item):
-        dist = math.sqrt((self.x-item.x)*(self.x-item.x) + (self.y-item.y)*(self.y-item.y))
-        return dist <= self.radius+item.radius

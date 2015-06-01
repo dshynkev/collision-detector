@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-28 00:34:18
+LAST EDITED:	2015-05-31 23:54:05
 DESCRIPTION:    Helper functions
 KNOWN ISSUES:
 '''
@@ -16,7 +16,7 @@ def getRandomColor():
     assert(const.COLOR_LOWEST>=0 and const.COLOR_HIGHEST<=255)
     return tuple([round(uniform (const.COLOR_LOWEST, const.COLOR_HIGHEST)) for i in range(3)])+ (const.COLOR_ALPHA,)
 
-# Normalize a vector with respect to a given factor. 
+# Normalize a color vector with respect to a given factor. 
 # By default, will normalize a [0..255] to [0.0...1.0] GL RGBA vector
 def normalize(vector, factor=255):
     return [i/factor for i in vector]
@@ -32,4 +32,3 @@ def load_GLshaders(vertex_src=const.VERTEX_SHADER_SRC, fragment_src=const.FRAGME
     fragment_f.close()
    
     return Shader([vertex_code], [fragment_code])
-        

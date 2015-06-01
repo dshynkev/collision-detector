@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-28 22:24:08
+LAST EDITED:	2015-05-31 22:39:56
 DESCRIPTION:    Rectangle item class.
 KNOWN ISSUES:
 '''
@@ -8,33 +8,20 @@ KNOWN ISSUES:
 import constants as const
 
 from helpers import getRandomColor
+import geometry
 
 from pyglet.graphics import draw
 from pyglet.gl import GL_QUADS, GL_LINE_LOOP, glLineWidth, glColor4f
-from abstractshape import AbstractShape
+from shape import Shape
 
-class Rectangle(AbstractShape):
+class Rectangle(Shape, geometry.Rectangle):
     def __init__(self, origin, width, height):
-        super().__init__(origin[0], origin[1], width, height)
+        Shape.__init__(self, origin, width, height)
+        geometry.Rectangle.__init__(self, origin, width, height)
         
-        self.x, self.y = origin
-        self.width = width
-        self.height = height          
-
         self.color = getRandomColor()
-        
-    def contains(self, point):
-        return (self.x<=point[0]) and (self.x+self.width>=point[0])\
-                        and (self.y<=point[1]) and (self.y+self.height>=point[1]) #If X1...x...X2 and Y1...y...Y2.
-    
-    def _moveBy(self, trans_vector):
-        self.x+=trans_vector[0]
-        self.y+=trans_vector[1]
 
-    def render(self):
-        # If more than one colliding item, set a respective flag
-        self.colliding = (len(self.colliding_items) > 0)
-        
+    def render(self):       
         # Generate vertex list
         self.vertex=self._make_vertex_list()
         
@@ -45,17 +32,11 @@ class Rectangle(AbstractShape):
             
     def collidingWith(self, item):
         if(type(self) is type(item)):
-            return self._check_collide_rect(item)
+            return geometry.check_collide_rectangles(self, item)
         else:
             return False    #TODO: Implement mixed-shape collisions
     
-    def _check_collide_rect(self, item):
-        return  (((self.x>=item.x and self.x<=item.x+item.width) or    #X1...x3...X2
-                (item.x>=self.x and item.x<=self.x+self.width)) and    #x3...X1...x4
-                ((self.y>=item.y and self.y<=item.y+item.height) or    #Y1...y3...Y2
-                (item.y>=self.y and item.y<=self.y+self.height)))      #y3...Y1...y4
-
-    # Return 4 vertices clockwise.
+    # Return 4 vertices counterlockwise.
     def _make_vertex_list(self):
         return (self.x, self.y,
                 self.x+self.width, self.y,
