@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-31 22:39:56
+LAST EDITED:	
 DESCRIPTION:    Rectangle item class.
 KNOWN ISSUES:
 '''
@@ -21,20 +21,22 @@ class Rectangle(Shape, geometry.Rectangle):
         
         self.color = getRandomColor()
 
-    def render(self):       
+    def render(self):     
+        self.set_colliding_flag()
+        
         # Generate vertex list
         self.vertex=self._make_vertex_list()
         
         draw(4, GL_QUADS, ('v2f', self.vertex), ('c4B', self.color*4))  #4x 2D vertices with colors
         if(self.colliding):
             glLineWidth(const.BORDER_WIDTH)
-            draw(4, GL_LINE_LOOP, ('v2f', self.vertex), ('c4B', const.COLOR_COLLIDING*4))  #If colliding, draw a border
+            draw(4, GL_LINE_LOOP, ('v2f', self.vertex), ('c4B', const.COLOR_COLLIDING[self.colliding]*4))  #If colliding, draw a border
             
     def collidingWith(self, item):
         if(type(self) is type(item)):
-            return geometry.check_collide_rectangles(self, item)
+            return const.COLLISION_RECT if geometry.check_collide_rectangles(self, item) else const.COLLISION_NONE
         else:
-            return False    #TODO: Implement mixed-shape collisions
+            return const.COLLISION_NONE
     
     # Return 4 vertices counterlockwise.
     def _make_vertex_list(self):

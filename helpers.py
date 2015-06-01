@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-31 23:54:05
+LAST EDITED:	
 DESCRIPTION:    Helper functions
 KNOWN ISSUES:
 '''
@@ -18,7 +18,7 @@ def getRandomColor():
 
 # Normalize a color vector with respect to a given factor. 
 # By default, will normalize a [0..255] to [0.0...1.0] GL RGBA vector
-def normalize(vector, factor=255):
+def normalized(vector, factor=255):
     return [i/factor for i in vector]
 
 # Set up vertex and geometry shaders from source files.

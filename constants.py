@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-31 23:06:26
+LAST EDITED:	
 DESCRIPTION:    This holds the constants that pertain to this program
 KNOWN ISSUES:
 '''
@@ -16,11 +16,18 @@ MAIN_MIN_SIZE = (100, 100)  #Width could be larger, depending on the window dect
 BORDER_WIDTH = 2.0  #Outline width for colliding shapes
 SMOOTH_WIDTH = 2.0  #Transition span for circles
 
+#The higher the number, the higher the priority when displaying
+COLLISION_NONE, COLLISION_RECT, COLLISION_CIRCLE, COLLISION_SAT = 0, 1, 2, 3
+
 COLOR_WHITE = (255, 255, 255, 255)
 COLOR_BLACK = (0, 0, 0, 255)
 COLOR_RED = (255, 0, 0, 255)
+COLOR_GREEN = (0, 255, 0, 255)
+COLOR_BLUE = (0, 0, 255, 255)
 
 COLOR_LOWEST = 100      #Lower and upper limits for color generation
 COLOR_HIGHEST = 200
 COLOR_ALPHA = 177       #Let alpha be uniform for all shapes
-COLOR_COLLIDING = COLOR_RED    #The color for when shapes collide
+COLOR_COLLIDING = {COLLISION_RECT: COLOR_RED,
+                   COLLISION_CIRCLE: COLOR_BLUE,
+                   COLLISION_SAT: COLOR_GREEN}

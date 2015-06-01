@@ -1,11 +1,11 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-05-31 22:39:54
+LAST EDITED:	
 DESCRIPTION:     Circle item class.
 KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails.
 '''
 
-from helpers import getRandomColor, normalize, load_GLshaders
+from helpers import getRandomColor, normalized, load_GLshaders
 import constants as const
 import geometry
 
@@ -17,16 +17,18 @@ from shape import *
 
 class Circle(Shape, geometry.Circle):
     def __init__(self, center, radius):
-        Shape.__init__(self, geometry.Point(center.x-radius, center.y-radius), radius*2, radius*2)
+        Shape.__init__(self, center-radius, radius*2, radius*2)
         geometry.Circle.__init__(self, center, radius)
 
         # Normalization needed for OpenGL color model (vec4([0...1]))
-        self.color = normalize(getRandomColor())
+        self.color = normalized(getRandomColor())
         
     #Load static shaders. Since we have no fallback option if this fails, ignore all exceptions. 
     shaders=load_GLshaders()
     
     def render(self):
+        self.set_colliding_flag()
+        
         self.shaders.bind()
              
         scalex = 2/self.SCENE_WIDTH    # Set scale factors to width/height reciprocals: this will map pixels to OpenGL coordinates
@@ -45,7 +47,8 @@ class Circle(Shape, geometry.Circle):
         self.shaders.uniformf(b'borderWidth', const.BORDER_WIDTH)
         
         self.shaders.uniformf(b'circleColor',  *self.color)
-        self.shaders.uniformf(b'borderColor', *normalize(const.COLOR_COLLIDING))
+        if(self.colliding):
+            self.shaders.uniformf(b'borderColor', *normalized(const.COLOR_COLLIDING[self.colliding]))
         
         # Now, all distances will be scaled with respect to the radius of the circle.
         self.shaders.uniform_matrixf(b'scaleMatrix', [relative_scalex, 0, 0, 0,\
@@ -61,7 +64,11 @@ class Circle(Shape, geometry.Circle):
         self.shaders.unbind()
 
     def collidingWith(self, item):
+        # Item is a circle
         if(type(self) is type(item)):
-            return geometry.check_collide_circles(self, item)
+            return const.COLLISION_CIRCLE if geometry.check_collide_circles(self, item) else const.COLLISION_NONE
+        # Item is a polygon
+        elif(hasattr(item, 'dots')):
+            return const.COLLISION_SAT if geometry.check_collide_polygon_circle(item, self) else const.COLLISION_NONE
         else:
-            return False    #TODO: Implement
+            return const.COLLISION_NONE

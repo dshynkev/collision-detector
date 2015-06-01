@@ -1,10 +1,10 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-05-31 22:36:37
+LAST EDITED:	
 DESCRIPTION:     Shape parentclass. All shapes should subclass this.
 KNOWN ISSUES:
 '''
-
+import constants as const
 import geometry
 
 class Shape:
@@ -25,9 +25,8 @@ class Shape:
     def __init__(self, origin, width, height):
         self.bounds = geometry.Rectangle(origin, width, height)
         
-        self.colliding_items=[]
-        self.colliding = False
-        
+        self.collisions=[]
+        self.colliding = 0        
     
     @classmethod
     def newScreenBounds(this, width, height):
@@ -71,40 +70,47 @@ class Shape:
         return True
     
     def getCollidingItems(self, items):
-        colliding_items = []        
+        collisions = []   
         for item in items:
-            if item is not self and self.collidingWith(item):
-                colliding_items.append(item)
-        return colliding_items
+            if item is not self:
+                collision_type = self.collidingWith(item)
+                if(collision_type != const.COLLISION_NONE):
+                    collisions.append((item, collision_type))
+        return collisions
     
     # item informs us that it is colliding with self. Record that.
-    def adviseCollision(self, item):
-        if item not in self.colliding_items:
-            self.colliding_items.append(item)
-        # If more than one colliding item, set the respective flag
-        self.colliding = (len(self.colliding_items) > 0)
+    def adviseCollision(self, item, coltype):
+        if (item, coltype) not in self.collisions:
+            self.collisions.append((item, coltype))
         
     # Ditto, but this tells us that item is no longer colliding with self.
     def adviseNoCollision(self, item):
-        if item in self.colliding_items:
-            self.colliding_items.remove(item)
-        # If more than one colliding item, set the respective flag
-        self.colliding = (len(self.colliding_items) > 0)
+        # By iterating through all collision records,
+        for i in range(0, len(self.collisions)):
+            # Find the one where the items matches advice sender
+            if(self.collisions[i][0] is item):
+                del self.collisions[i]
     
     # Get items currently colliding with self; update local item list accordingly;
     # inform other items about the collision state.    
     def updateCollisions(self, items):
-        new_items=self.getCollidingItems(items)
+        self.colliding = const.COLLISION_NONE
         
-        for item in self.colliding_items:
-            if item not in new_items:
-                item.adviseNoCollision(self)
-                self.colliding_items.remove(item)
+        new_collisions=self.getCollidingItems(items)
         
-        for item in new_items:
-            if item not in self.colliding_items:
-                item.adviseCollision(self)
-                self.colliding_items.append(item)
+        for collision in self.collisions:
+            if collision not in new_collisions:
+                collision[0].adviseNoCollision(self)
+                self.collisions.remove(collision)
+        
+        for collision in new_collisions:
+            if collision not in self.collisions:
+                collision[0].adviseCollision(self, collision[1])
+                self.collisions.append(collision)
                 
-        # If more than one colliding item, set the respective flag
-        self.colliding = (len(self.colliding_items) > 0)
+    # Before actually rendering anything, set the colliding flag appropriately.       
+    def set_colliding_flag(self):
+        self.colliding = const.COLLISION_NONE
+        
+        for item, coltype in self.collisions:
+            self.colliding = coltype if coltype > self.colliding else self.colliding

@@ -1,10 +1,10 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-05-31 23:36:42
+LAST EDITED:	
 DESCRIPTION:    Polygon item class. Since rects use a different algorithm, they do not belong.
 KNOWN ISSUES:
 '''
-from helpers import getRandomColor
+from helpers import getRandomColor, normalized
 import constants as const
 import geometry
 
@@ -28,10 +28,12 @@ class Polygon(Shape, geometry.Polygon):
         
         self._set_gl_vertices()
         
-        self.color=getRandomColor()
+        self.color=normalized(getRandomColor())
     
         
     def render(self):
+        self.set_colliding_flag()
+        
         self._set_gl_vertices()
         
         # Without this, number of points in polygon is undefined to pyglet.
@@ -42,20 +44,28 @@ class Polygon(Shape, geometry.Polygon):
         
         vertices = round(len(self.gl_vertices)/2)   
         
-        draw(vertices, GL_POLYGON, ('v2f', self.gl_vertices), ('c4B', self.color*vertices))
-        if(self.colliding):
-            draw(vertices, GL_LINE_LOOP, ('v2f', self.gl_vertices), ('c4B', const.COLOR_COLLIDING*vertices))
+        glColor4f(*self.color)
+        draw(vertices, GL_POLYGON, ('v2f', self.gl_vertices))
+        if(self.colliding): 
+            glColor4f(*normalized(const.COLOR_COLLIDING[self.colliding]))
+            draw(vertices-1, GL_LINE_LOOP, ('v2f', self.gl_vertices[:-2]))  # Exclude last vertex (the primitive restart)
         
         glDisable(GL_LINE_SMOOTH)
 
     
     def collidingWith(self, item):
         # First, check if bounding rects collide. If not, there is no collision.        
-        #if(not geometry.check_collide_rectangles(self.bounds, item.bounds)):
-        #    return False
+        if(not geometry.check_collide_rectangles(self.bounds, item.bounds)):
+            return const.COLLISION_NONE
         
+        # Item is a polygon
         if(type(self) is type(item)):
-            return geometry.check_collide_polygons(self, item)
+            return const.COLLISION_SAT if geometry.check_collide_polygons(self, item) else const.COLLISION_NONE
+        # Item is a circle
+        elif(hasattr(item , 'radius')):
+            return const.COLLISION_SAT if geometry.check_collide_polygon_circle(self, item) else const.COLLISION_NONE
+        else:
+            return const.COLLISION_NONE
             
     def _set_gl_vertices(self):
         self.gl_vertices = [coord for dot in self.dots for coord in dot]    # Transform list of yuples into a flat list

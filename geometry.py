@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-01 00:10:17
+LAST EDITED:	
 DESCRIPTION:    Geometrical classes and algorithms
 KNOWN ISSUES:   Names will collide, import by name only.
 '''
@@ -9,45 +9,91 @@ from copy import copy
 
 import pyglet.graphics
 import pyglet.gl
- 
+
+# Get normals to a polygon's sides
 def get_polygon_normals(polygon):
     normals = []
     prevertex=polygon[0]
     for vertex in polygon[1:]:
         normal = Vector.fromTuple(prevertex-vertex).normal()
         normal.normalize()
-        print(normal)
         normals.append(normal)
         prevertex=vertex
     return normals
 
-def _dot(vertex, axis):
-    return (vertex.x*axis.x+vertex.y*axis.y)
+def _get_circle_to_polygon_normal(polygon, circle):
+    min_dist = polygon.dots[0].dist(circle)
+    closest = polygon.dots[0]
+    for dot in polygon.dots[1:]:
+        dist = dot.dist(circle)
+        if(dist<min_dist):
+            closest=dot
+            min_dist=dist
     
-def _project(polygon, axis):
-    min_point = _dot(axis, polygon[0])
-    max_point = min_point    
+    normal = Vector.fromTuple(circle-closest)
+    normal.normalize()
+    return [normal]
+        
+        
+
+# Dot product of two vectors
+def _dot(vector, other):
+    return (vector.x*other.x+vector.y*other.y)
+
+# Vector product (multiplied as 2x1 matrices)
+def _vec(vertex, axis):
+    return Vector(vector.x*other.x, vector.y*other.y)
+    
+# Project a polygon onto an axis
+def _project_polygon(polygon, axis):
+    min_point = _dot(polygon[0], axis)
+    max_point = min_point
     
     for vertex in polygon:
         current_point = _dot(vertex, axis)
         min_point = min(min_point, current_point)
         max_point = max(max_point, current_point)
+        
     return (min_point, max_point)
 
+def _project_circle(circle, axis):
+    center_point = _dot(circle, axis)
+    min_point = center_point-circle.radius
+    max_point = center_point+circle.radius
+    return (min_point, max_point)
+
+# Check if two projections overlap
 def _overlap(proj1, proj2):
-    return proj1[0]<=proj2[0] or proj2[1]<=proj1[1]
+    # ...1[0]....2[0]....1[1].....2[1] is when polygons overlap.
+    # Then, the signs of difference between each .[0] and .[1] are the same
+    d1 = proj1[0]-proj2[1]
+    d2 = proj2[0]-proj1[1]
+    return (d1*d2>0)
             
 
 def check_collide_polygons(first, second):
-    normals = first.normals+second.normals
+    normals = first.normals + second.normals
     
     for normal in normals:
-        first_p = _project(first.dots, normal)
-        second_p = _project(second.dots, normal)
+        first_p = _project_polygon(first.dots, normal)
+        second_p = _project_polygon(second.dots, normal)
         
         if(not _overlap(first_p, second_p)):
             return False
     
+    return True
+
+
+def check_collide_polygon_circle(polygon, circle):
+    normals = polygon.normals + _get_circle_to_polygon_normal(polygon, circle)
+    
+    for normal in normals:
+        polygon_p = _project_polygon(polygon.dots, normal)
+        circle_p = _project_circle(circle, normal)
+        
+        if(not _overlap(polygon_p, circle_p)):
+            return False
+        
     return True
 
 # Non-SAT stuff starts here
@@ -59,8 +105,7 @@ def check_collide_rectangles(first, second):
                     (second.y>=first.y and second.y<=first.y+first.height)))      #y3...Y1...y4
                 
 def check_collide_circles(first, second):
-    dist = math.sqrt(pow(first.x-second.x, 2) + pow(first.y-second.y, 2))
-    return dist <= first.radius+second.radius       #O1O2 <= R1+R2
+    return first.dist(second) <= first.radius+second.radius       #O1O2 <= R1+R2
     
 
 class Point:
@@ -72,30 +117,48 @@ class Point:
     @classmethod        
     def fromTuple(cls, coord_tuple):
         return cls(*coord_tuple)
+    
+    def dist(self, other):
+        return math.sqrt((self.x-other.x)*(self.x-other.x)+(self.y-other.y)*(self.y-other.y))
         
     def __add__(self, other):
-        return Point(self.x+other.x,
-                self.y+other.y)
+        try:
+            return Point(self.x+other.x,
+                            self.y+other.y)            
+        except:
+            # If other has no (x,y), assume it's scalar
+            return Point(self.x+other, self.y+other)
                 
     def __iadd__(self, other):
-        self.x+=other.x
-        self.y+=other.y
+        try:
+            self.x += other.x
+            self.y += other.y
+        except:
+            self.x += other
+            self.y += other
         return self
         
     def __sub__(self, other):
-        return Point(self.x-other.x,
-                     self.y-other.y)
+        try:
+            return Point(self.x-other.x,
+                         self.y-other.y)
+        except:
+            # If other has no (x,y), assume it's scalar 
+            return Point(self.x-other, self.y-other)
     
     def __isub__(self, other):
-        self.x+=other.x
-        self.y+=other.y
+        try:
+            self.x -= other.x
+            self.y -= other.y
+        except:
+            self.x -= other
+            self.y -= other
         return self        
         
     def __mul__(self, other):
         try:
             # If this type is a container, do matrix multiplication
-            len(other)
-            return numpy.dot(self, other)
+            return _vec(self, other)
         except:
             # Else, assume that other is scalar
             return Point(self.x*other, self.y*other)
@@ -111,9 +174,6 @@ class Point:
         self.x/=other
         self.y/=other
         return self
-    
-    def __eq__(self, other):
-        return self.x==other.x and self.y==other.y
     
     def __iter__(self):
         self.index=-1     
@@ -151,8 +211,9 @@ class Vector(Point):
         return Vector(self.y, -self.x)
         
     def normalize(self):
-        self /= self.length
-        self.length = 1
+        if(self.length>0):
+            self /= self.length
+            self.length = 1
 
 # Shapes will inherit from point, as they necessarily have a point-of-origin
 class Rectangle(Point):
@@ -166,7 +227,7 @@ class Rectangle(Point):
                 and (self.y<=point.y) and (self.y+self.height>=point.y) #If X1...x...X2 and Y1...y...Y2.
         
     def __repr__(self):
-        return 'Bottom-left @ {0}, width={1}, height={2}'.format(super().__repr__(), self.width, self.height)
+        return 'Bottom-left @ {0} width={1} height={2}\n'.format(super().__repr__(), self.width, self.height)
         
         
 class Circle(Point):
@@ -178,7 +239,7 @@ class Circle(Point):
         return (point.x-self.x)*(point.x-self.x)+(point.y-self.y)*(point.y-self.y) <= self.radius*self.radius   # (x-m)^2+(y-n)^2 <= R^2
         
     def __repr__(self):
-        return 'Center @ {0}, radius={1}'.format(super().__repr__(), self.radius)
+        return 'Center @ {0} radius={1}\n'.format(super().__repr__(), self.radius)
 
 # Polygon will _not_ inherit from point: polygons have no origin        
 class Polygon:
@@ -222,7 +283,7 @@ class Polygon:
         return self
         
     def __repr__(self):
-        representation = ''
+        representation = '\n'
         for dot in self.dots:
             representation += dot.__repr__()+'\n'
         return representation
