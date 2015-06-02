@@ -213,6 +213,10 @@ class Vector(Point):
         if(self.length>0):
             self /= self.length
             self.length = 1
+    
+    def normalized(self):
+        self.normalize()
+        return self
 
 # Shapes will inherit from point, as they necessarily have a point-of-origin
 class Rectangle(Point):
@@ -220,6 +224,8 @@ class Rectangle(Point):
         super().__init__(*origin)
         self.width=width
         self.height=height
+        
+    setTo = __init__
     
     def contains(self, point):
         return (self.x<=point.x) and (self.x+self.width>=point.x)\
@@ -246,7 +252,6 @@ class Polygon:
         if(dots[0] != dots[-1]):        
             dots += [copy(dots[0])]        # Append first vertex to the end, making the polygon enclosed
         self.dots = dots
-        self.rotation = 0
         self.normals = get_polygon_normals(self.dots)
         
     # Determine if the point tested lies within the polygon.

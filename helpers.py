@@ -16,6 +16,14 @@ def getRandomColor():
     assert(const.COLOR_LOWEST>=0 and const.COLOR_HIGHEST<=255)
     return tuple([round(uniform (const.COLOR_LOWEST, const.COLOR_HIGHEST)) for i in range(3)])+ (const.COLOR_ALPHA,)
 
+def getRandomTranslation():
+    dx = uniform(-const.AUTO_TRANS_MAX, const.AUTO_TRANS_MAX)
+    dy = uniform(-const.AUTO_TRANS_MAX, const.AUTO_TRANS_MAX)
+    return (dx, dy)
+
+def getRandomSpeed():
+    return uniform(const.AUTO_SPEED_MAX, const.AUTO_SPEED_MIN)
+
 # Normalize a color vector with respect to a given factor. 
 # By default, will normalize a [0..255] to [0.0...1.0] GL RGBA vector
 def normalized(vector, factor=255):

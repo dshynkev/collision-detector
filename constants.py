@@ -16,6 +16,10 @@ MAIN_MIN_SIZE = (100, 100)  #Width could be larger, depending on the window dect
 BORDER_WIDTH = 2.0  #Outline width for colliding shapes
 SMOOTH_WIDTH = 2.0  #Transition span for circles
 
+AUTO_TRANS_MAX = 300
+AUTO_SPEED_MIN = 1/FPS
+AUTO_SPEED_MAX = 5/FPS
+
 #The higher the number, the higher the priority when displaying
 COLLISION_NONE, COLLISION_RECT, COLLISION_CIRCLE, COLLISION_SAT = 0, 1, 2, 3
 

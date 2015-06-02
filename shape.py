@@ -5,6 +5,7 @@ DESCRIPTION:     Shape parentclass. All shapes should subclass this.
 KNOWN ISSUES:
 '''
 import constants as const
+import math
 import geometry
 
 class Shape:
@@ -68,6 +69,7 @@ class Shape:
         if(not adjust_vector.isNullVector()):   
             self.moveBy(adjust_vector)
         return True
+    
     
     def getCollidingItems(self, items):
         collisions = []   

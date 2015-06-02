@@ -12,6 +12,7 @@ from pyglet.gl import *
 from pyglet.window import key, mouse
 
 import constants as const
+import helpers
 
 from circle import *
 from polygon import *
@@ -34,7 +35,12 @@ class MainWindow(pyglet.window.Window):
 
         self.items = []             # All items rendered within this window
         self.dragged_items = []     # Items being dragged at the moment
+        self.move_vectors = {}      # Vectors for random movement
         self.multidrag_flag=True    # Whether all overlapping items or only the uppermost one shoulds be dragged.
+        self.random_move_flag=False # Whether shapes should be automatically moved
+        
+        # Stack handlers to preserve their default behaviour
+        self.push_handlers(on_resize = self.resize)
 
     def add_item(self, item):
         if(issubclass(type(item), Shape)):
@@ -46,7 +52,24 @@ class MainWindow(pyglet.window.Window):
     def check_collisions(self, items):
         for item in items:
             item.updateCollisions(self.items)
-
+            
+    def random_move(self, dt):
+        for item in self.items:
+            try:
+                vector = self.move_vectors[id(item)]
+            except:
+                vector = geometry.Vector.fromTuple(helpers.getRandomTranslation())
+                self.move_vectors[id(item)] = vector
+             
+            speed = helpers.getRandomSpeed()
+            if(abs(vector.x+vector.y) < 2*speed):
+                vector = geometry.Vector.fromTuple(helpers.getRandomTranslation())
+            
+            item.moveBy(vector*speed)
+            vector.x -= speed if vector.x >0 else -speed
+            vector.y -= speed if vector.y >0 else -speed
+            
+            
     def on_draw(self):
         self.clear()
         for item in self.items:
@@ -85,6 +108,10 @@ class MainWindow(pyglet.window.Window):
             # On CTRL+M, toggle multidrag
             if(symbol == key.M):
                 self.multidrag_flag = not self.multidrag_flag
+            if(symbol == key.R):
+                self.random_move_flag = not self.random_move_flag
+                if(self.random_move_flag):
+                    pyglet.clock.schedule(self.random_move)
             # On CTRL+Q, exit
             if(symbol == key.Q):
                 window.dispatch_event('on_close')
@@ -97,14 +124,7 @@ class MainWindow(pyglet.window.Window):
         if(symbol == key.ESCAPE):
             window.dispatch_event('on_close')
             
-    def on_resize(self, width, height):
-        # Resize GL viewport
-        glViewport(0, 0, width, height)
-        glMatrixMode(gl.GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, width, 0, height, -1, 1)
-        glMatrixMode(gl.GL_MODELVIEW) 
-        
+    def resize(self, width, height):      
         # Inform all items of the new dimensions and adjust their positions accordingly
         Shape.newScreenBounds(width, height)
         for item in self.items:

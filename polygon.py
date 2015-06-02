@@ -53,7 +53,6 @@ class Polygon(Shape, geometry.Polygon):
             draw(vertices-1, GL_LINE_LOOP, ('v2f', self.gl_vertices[:-2]))  # Exclude last vertex (the primitive restart)
         
         glDisable(GL_LINE_SMOOTH)
-
     
     def collidingWith(self, item):
         # First, check if bounding rects collide. If not, there is no collision.        
@@ -62,8 +61,8 @@ class Polygon(Shape, geometry.Polygon):
         
         # Item is a polygon
         if(type(self) is type(item)):
-            # If both are rectangles and not rotated
-            if(hasattr(self, 'rectangle') and hasattr(item, 'rectangle') and not self.rotation and not item.rotation):
+            # If both are rectangles, use rectangle-specific algo
+            if(hasattr(self, 'rectangle') and hasattr(item, 'rectangle')):
                 return const.COLLISION_RECT if\
                     geometry.check_collide_rectangles(self, item) else const.COLLISION_NONE
             else:
