@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:43:54
 DESCRIPTION:    This is the main class of a simple collision detection demo
                 written in Python (Pyglet framework). 
 KNOWN ISSUES:   *> Segfaults on the only Windows machine I have at my disposal. Appears to be a Python issue.
@@ -13,7 +13,6 @@ from pyglet.window import key, mouse
 
 import constants as const
 
-from rectangle import *
 from circle import *
 from polygon import *
 
@@ -114,12 +113,12 @@ class MainWindow(pyglet.window.Window):
 
 if (__name__=="__main__"):
     window = MainWindow()
-    window.add_item(Rectangle(geometry.Point(10, 10), 200, 300))
-    window.add_item(Rectangle(geometry.Point(20, 20), 100, 120))
-    window.add_item(Rectangle(geometry.Point(50, 50), 400, 200))
+    window.add_item(Polygon.fromRectangle(geometry.Point(10, 10), 200, 300))
+    window.add_item(Polygon.fromRectangle(geometry.Point(20, 20), 100, 120))
+    window.add_item(Polygon.fromRectangle(geometry.Point(50, 50), 400, 200))
     window.add_item(Circle(geometry.Point(150, 150), 100))
     window.add_item(Circle(geometry.Point(250, 250), 300))
-    window.add_item(Polygon(list(map(geometry.Point.fromTuple, [[250, 250], [200, 300], [150, 200], [200, 50], [250, 0]]))))
-    window.add_item(Polygon(list(map(geometry.Point.fromTuple, [[400, 300], [300, 300], [350, 400]]))))
-    window.add_item(Polygon(list(map(geometry.Point.fromTuple, [[400, 200], [400, 400], [600, 400], [600, 200]]))))
+    window.add_item(Polygon.fromList([[250, 250], [200, 300], [150, 200], [200, 50], [250, 0], [300, 150]]))
+    window.add_item(Polygon.fromList([[400, 300], [300, 300], [350, 400]]))
+    window.add_item(Polygon.fromList([[400, 200], [400, 400], [600, 400], [800, 200]]))
     pyglet.app.run()

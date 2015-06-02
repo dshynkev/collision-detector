@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:44:00
 DESCRIPTION:    Helper functions
 KNOWN ISSUES:
 '''

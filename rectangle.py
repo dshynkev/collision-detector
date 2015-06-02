@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:39:26
 DESCRIPTION:    Rectangle item class.
 KNOWN ISSUES:
 '''

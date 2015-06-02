@@ -1,6 +1,6 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:45:00
 DESCRIPTION:     Circle item class.
 KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails.
 '''
@@ -9,7 +9,7 @@ from helpers import getRandomColor, normalized, load_GLshaders
 import constants as const
 import geometry
 
-import pyglet, math
+import pyglet
 from pyglet.gl import *
 from glhelper import *
 
@@ -68,7 +68,7 @@ class Circle(Shape, geometry.Circle):
         if(type(self) is type(item)):
             return const.COLLISION_CIRCLE if geometry.check_collide_circles(self, item) else const.COLLISION_NONE
         # Item is a polygon
-        elif(hasattr(item, 'dots')):
-            return const.COLLISION_SAT if geometry.check_collide_polygon_circle(item, self) else const.COLLISION_NONE
+        elif(issubclass(type(item), geometry.Polygon)):
+            return const.COLLISION_SAT if geometry.check_collide_polygon_circle(item.dots, self, item.normals) else const.COLLISION_NONE
         else:
-            return const.COLLISION_NONE
+            raise TypeError("Only shapes can be checked for collisions")

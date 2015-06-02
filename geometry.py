@@ -1,14 +1,11 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:30:46
 DESCRIPTION:    Geometrical classes and algorithms
 KNOWN ISSUES:   Names will collide, import by name only.
 '''
 import math
 from copy import copy
-
-import pyglet.graphics
-import pyglet.gl
 
 # Get normals to a polygon's sides
 def get_polygon_normals(polygon):
@@ -21,10 +18,11 @@ def get_polygon_normals(polygon):
         prevertex=vertex
     return normals
 
+# Get the only normal for circle-polygon collision (from centre to the nearest point)
 def _get_circle_to_polygon_normal(polygon, circle):
-    min_dist = polygon.dots[0].dist(circle)
-    closest = polygon.dots[0]
-    for dot in polygon.dots[1:]:
+    min_dist = polygon[0].dist(circle)
+    closest = polygon[0]
+    for dot in polygon[1:]:
         dist = dot.dist(circle)
         if(dist<min_dist):
             closest=dot
@@ -41,7 +39,8 @@ def _dot(vector, other):
     return (vector.x*other.x+vector.y*other.y)
 
 # Vector product (multiplied as 2x1 matrices)
-def _vec(vertex, axis):
+
+def _vec(vector, other):
     return Vector(vector.x*other.x, vector.y*other.y)
     
 # Project a polygon onto an axis
@@ -71,24 +70,24 @@ def _overlap(proj1, proj2):
     return (d1*d2>0)
             
 
-def check_collide_polygons(first, second):
-    normals = first.normals + second.normals
+
+def check_collide_polygons(first, second, first_normals, second_normals):
+    normals = first_normals + second_normals
     
     for normal in normals:
-        first_p = _project_polygon(first.dots, normal)
-        second_p = _project_polygon(second.dots, normal)
+        first_p = _project_polygon(first, normal)
+        second_p = _project_polygon(second, normal)
         
         if(not _overlap(first_p, second_p)):
             return False
     
     return True
 
-
-def check_collide_polygon_circle(polygon, circle):
-    normals = polygon.normals + _get_circle_to_polygon_normal(polygon, circle)
+def check_collide_polygon_circle(polygon, circle, polygon_normals):
+    normals = polygon_normals + _get_circle_to_polygon_normal(polygon, circle)
     
     for normal in normals:
-        polygon_p = _project_polygon(polygon.dots, normal)
+        polygon_p = _project_polygon(polygon, normal)
         circle_p = _project_circle(circle, normal)
         
         if(not _overlap(polygon_p, circle_p)):
@@ -225,7 +224,7 @@ class Rectangle(Point):
     def contains(self, point):
         return (self.x<=point.x) and (self.x+self.width>=point.x)\
                 and (self.y<=point.y) and (self.y+self.height>=point.y) #If X1...x...X2 and Y1...y...Y2.
-        
+                
     def __repr__(self):
         return 'Bottom-left @ {0} width={1} height={2}\n'.format(super().__repr__(), self.width, self.height)
         
@@ -247,7 +246,7 @@ class Polygon:
         if(dots[0] != dots[-1]):        
             dots += [copy(dots[0])]        # Append first vertex to the end, making the polygon enclosed
         self.dots = dots
-        
+        self.rotation = 0
         self.normals = get_polygon_normals(self.dots)
         
     # Determine if the point tested lies within the polygon.
@@ -275,11 +274,35 @@ class Polygon:
                     inside = not inside
             prevertex=vertex
         return inside
+        
+    @classmethod
+    def fromRectangle(cls, origin, width, height):
+        instance = cls([Point(origin.x, origin.y), Point(origin.x, origin.y+height), 
+                    Point(origin.x+width, origin.y+height), Point(origin.x+width, origin.y)])
+        instance.rectangle = True
+        instance.width = width
+        instance.height = height
+        instance.x, instance.y = instance.dots[0]
+        return instance
+                    
+    @classmethod
+    def fromList(cls, lst):
+        return cls(list(map(Point.fromTuple, lst)))
+    
+    def get_gl_vertices(self):
+        vertices = [coord for dot in self.dots for coord in dot]    # Transform list of yuples into a flat list
+        vertices += [-1, -1]     # Restart trigger for OpenGL. Repeated twice because vertex data has to be 2-aligned
+        return vertices
     
     # We shift a polygon by translating each point thereof by the translation vector
     def __iadd__(self, point):
         for dot in self.dots:
             dot += point
+        return self
+
+    def __isub__(self, point):
+        for dot in self.dots:
+            dot -= point
         return self
         
     def __repr__(self):

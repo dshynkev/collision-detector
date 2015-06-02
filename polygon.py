@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:44:43
 DESCRIPTION:    Polygon item class. Since rects use a different algorithm, they do not belong.
 KNOWN ISSUES:
 '''
@@ -26,7 +26,7 @@ class Polygon(Shape, geometry.Polygon):
         
         geometry.Polygon.__init__(self, dots)
         
-        self._set_gl_vertices()
+        self.gl_vertices = self.get_gl_vertices()
         
         self.color=normalized(getRandomColor())
     
@@ -34,7 +34,7 @@ class Polygon(Shape, geometry.Polygon):
     def render(self):
         self.set_colliding_flag()
         
-        self._set_gl_vertices()
+        self.gl_vertices = self.get_gl_vertices()
         
         # Without this, number of points in polygon is undefined to pyglet.
         glEnable(GL_PRIMITIVE_RESTART)
@@ -46,7 +46,9 @@ class Polygon(Shape, geometry.Polygon):
         
         glColor4f(*self.color)
         draw(vertices, GL_POLYGON, ('v2f', self.gl_vertices))
-        if(self.colliding): 
+
+        if(self.colliding):
+            glLineWidth(const.BORDER_WIDTH)
             glColor4f(*normalized(const.COLOR_COLLIDING[self.colliding]))
             draw(vertices-1, GL_LINE_LOOP, ('v2f', self.gl_vertices[:-2]))  # Exclude last vertex (the primitive restart)
         
@@ -60,13 +62,15 @@ class Polygon(Shape, geometry.Polygon):
         
         # Item is a polygon
         if(type(self) is type(item)):
-            return const.COLLISION_SAT if geometry.check_collide_polygons(self, item) else const.COLLISION_NONE
+            # If both are rectangles and not rotated
+            if(hasattr(self, 'rectangle') and hasattr(item, 'rectangle') and not self.rotation and not item.rotation):
+                return const.COLLISION_RECT if\
+                    geometry.check_collide_rectangles(self, item) else const.COLLISION_NONE
+            else:
+                return const.COLLISION_SAT if\
+                    geometry.check_collide_polygons(self.dots, item.dots, self.normals, item.normals) else const.COLLISION_NONE
         # Item is a circle
-        elif(hasattr(item , 'radius')):
-            return const.COLLISION_SAT if geometry.check_collide_polygon_circle(self, item) else const.COLLISION_NONE
+        elif(issubclass(type(item), geometry.Circle)):
+            return const.COLLISION_SAT if geometry.check_collide_polygon_circle(self.dots, item, self.normals) else const.COLLISION_NONE
         else:
-            return const.COLLISION_NONE
-            
-    def _set_gl_vertices(self):
-        self.gl_vertices = [coord for dot in self.dots for coord in dot]    # Transform list of yuples into a flat list
-        self.gl_vertices += [-1, -1]     # Restart trigger for OpenGL. Repeated twice because vertex data has to be 2-aligned
+            raise TypeError("Only shapes can be checked for collisions")

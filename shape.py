@@ -1,6 +1,6 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	
+LAST EDITED:	2015-06-02 01:43:42
 DESCRIPTION:     Shape parentclass. All shapes should subclass this.
 KNOWN ISSUES:
 '''
@@ -86,23 +86,21 @@ class Shape:
     # Ditto, but this tells us that item is no longer colliding with self.
     def adviseNoCollision(self, item):
         # By iterating through all collision records,
-        for i in range(0, len(self.collisions)):
-            # Find the one where the items matches advice sender
-            if(self.collisions[i][0] is item):
-                del self.collisions[i]
+        for collision in self.collisions:
+            # Find the one where the items matches the advice sender
+            if(collision[0] is item):
+                self.collisions.remove(collision)
     
     # Get items currently colliding with self; update local item list accordingly;
     # inform other items about the collision state.    
-    def updateCollisions(self, items):
-        self.colliding = const.COLLISION_NONE
-        
+    def updateCollisions(self, items):      
         new_collisions=self.getCollidingItems(items)
         
         for collision in self.collisions:
             if collision not in new_collisions:
                 collision[0].adviseNoCollision(self)
                 self.collisions.remove(collision)
-        
+
         for collision in new_collisions:
             if collision not in self.collisions:
                 collision[0].adviseCollision(self, collision[1])
