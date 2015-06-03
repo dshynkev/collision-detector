@@ -10,7 +10,7 @@ import geometry
 
 from pyglet.gl import *
 from pyglet.graphics import draw
-from shape import *
+from shape import Shape
 
 class Polygon(Shape, geometry.Polygon):
     # The respresentation of a polygon is a list of dots (vertices)
@@ -53,6 +53,17 @@ class Polygon(Shape, geometry.Polygon):
             draw(vertices-1, GL_LINE_LOOP, ('v2f', self.gl_vertices[:-2]))  # Exclude last vertex (the primitive restart)
         
         glDisable(GL_LINE_SMOOTH)
+        
+    def updateBounds(self):
+        # Find maxima of x and y coordinates
+        max_x = max([x for x, y in self.dots])
+        min_x = min([x for x, y in self.dots])
+        max_y = max([y for x, y in self.dots])
+        min_y = min([y for x, y in self.dots])
+        self.bounds.x, self.bounds.y = min_x, min_y
+        self.bounds.width = max_x-min_x   
+        self.bounds.height = max_y-min_y
+        
     
     def collidingWith(self, item):
         # First, check if bounding rects collide. If not, there is no collision.        

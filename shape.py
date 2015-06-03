@@ -30,7 +30,7 @@ class Shape:
         self.colliding = 0        
     
     @classmethod
-    def newScreenBounds(this, width, height):
+    def tellScreenBounds(this, width, height):
         this.SCENE_WIDTH=width
         this.SCENE_HEIGHT=height
         

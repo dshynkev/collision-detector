@@ -13,9 +13,11 @@ from pyglet.window import key, mouse
 
 import constants as const
 import helpers
+import geometry
 
-from circle import *
-from polygon import *
+from shape import Shape
+from circle import Circle
+from polygon import Polygon
 
 class MainWindow(pyglet.window.Window):
     def __init__(self):
@@ -25,7 +27,6 @@ class MainWindow(pyglet.window.Window):
 
         self.set_minimum_size(*const.MAIN_MIN_SIZE)
         self.set_caption(const.MAIN_TITLE)
-        self.fullscreen_flag = False
 
         # Blend alpha so that the more shapes overlap, the less transparent the intersection area.
         glEnable(GL_BLEND)
@@ -36,8 +37,10 @@ class MainWindow(pyglet.window.Window):
         self.items = []             # All items rendered within this window
         self.dragged_items = []     # Items being dragged at the moment
         self.move_vectors = {}      # Vectors for random movement
-        self.multidrag_flag=True    # Whether all overlapping items or only the uppermost one shoulds be dragged.
-        self.random_move_flag=False # Whether shapes should be automatically moved
+        
+        self.fullscreen_flag = False
+        self.multidrag_flag = True  # Whether all overlapping items or only the uppermost one should be dragged.
+        self.random_move_flag = False # Whether shapes should be automatically moved
         
         # Stack handlers to preserve their default behaviour
         self.push_handlers(on_resize = self.resize)
@@ -53,27 +56,40 @@ class MainWindow(pyglet.window.Window):
         for item in items:
             item.updateCollisions(self.items)
             
+    # Move items randomly by pre-generated vectors.
     def random_move(self, dt):
         for item in self.items:
             try:
                 vector = self.move_vectors[id(item)]
             except:
+                # If the vector does not exist yet, create it
                 vector = geometry.Vector.fromTuple(helpers.getRandomTranslation())
                 self.move_vectors[id(item)] = vector
              
-            speed = helpers.getRandomSpeed()
-            if(abs(vector.x+vector.y) < 2*speed):
+            # IF the vector has been shortened by too much, make a new one
+            if(vector.length < const.AUTO_SPEED):
                 vector = geometry.Vector.fromTuple(helpers.getRandomTranslation())
+                self.move_vectors[id(item)] = vector
             
-            item.moveBy(vector*speed)
-            vector.x -= speed if vector.x >0 else -speed
-            vector.y -= speed if vector.y >0 else -speed
-            
+            # Current transition vector is computed from the direction of the 
+            # principal transition vector and predefined speed
+            current_trans = vector.normalized() * const.AUTO_SPEED
+            item.moveBy(current_trans)
+            # We decrement the translation vector by current vector
+            vector.shortenBy(current_trans)
+        
+        self.check_collisions(self.items)
             
     def on_draw(self):
         self.clear()
         for item in self.items:
             item.render()
+            
+    def resize(self, width, height):      
+        # Inform all items of the new dimensions and adjust their positions accordingly
+        Shape.tellScreenBounds(width, height)
+        for item in self.items:
+            item.adjustBounds()    
 
     # Builds a list of items that could be dragged after this mouse_press.
     # Caveat: only these items are deemed to be "selected", i.e. deletion etc
@@ -95,10 +111,12 @@ class MainWindow(pyglet.window.Window):
             item.moveBy(geometry.Vector(dx, dy))
         self.check_collisions(self.dragged_items)
 
+    # Clears the list of items
     def on_mouse_release(self, x, y, button, modifiers):
         if(button ==  mouse.LEFT):        
             self.dragged_items.clear()
 
+    # Handle key presses. FIXME: Most of these should use graphic buttons instead
     def on_key_press(self, symbol, modifiers):
         if(modifiers and key.MOD_CTRL):
             # On CTRL+F, toggle fullscreen
@@ -108,10 +126,22 @@ class MainWindow(pyglet.window.Window):
             # On CTRL+M, toggle multidrag
             if(symbol == key.M):
                 self.multidrag_flag = not self.multidrag_flag
-            if(symbol == key.R):
+            if(symbol == key.A):
                 self.random_move_flag = not self.random_move_flag
                 if(self.random_move_flag):
                     pyglet.clock.schedule(self.random_move)
+                else:
+                    pyglet.clock.unschedule(self.random_move)
+            
+            if(symbol == key.C):
+                self.push_handlers(on_mouse_press = self.circle_on_click,
+                                   on_mouse_drag = self.circle_on_drag,
+                                   on_mouse_release = self.circle_on_release)
+                
+            if(symbol == key.R):
+                self.push_handlers(on_mouse_press = self.rect_on_click,
+                                   on_mouse_drag = self.rect_on_drag,
+                                   on_mouse_release = self.rect_on_release)
             # On CTRL+Q, exit
             if(symbol == key.Q):
                 window.dispatch_event('on_close')
@@ -124,13 +154,54 @@ class MainWindow(pyglet.window.Window):
         if(symbol == key.ESCAPE):
             window.dispatch_event('on_close')
             
-    def resize(self, width, height):      
-        # Inform all items of the new dimensions and adjust their positions accordingly
-        Shape.newScreenBounds(width, height)
-        for item in self.items:
-            item.adjustBounds()
+    # ~~~~~~~~~~ CIRCLE creation subroutines ~~~~~~~~~~
+    
+    def circle_on_click(self, x, y, button, modifiers):
+        if(button == mouse.LEFT):
+            self.temp_item = Circle(geometry.Point(x, y), 0)
+            self.add_item(self.temp_item)
+            return True     # Don't pass control to default handler
         
-
+    def circle_on_drag(self, x, y, dx, dy, buttons, modifiers):
+        self.temp_item.radius += geometry.Vector(dx, dy).length
+        self.temp_item.updateBounds()
+        return True
+        
+    def circle_on_release(self, x, y, button, modifiers):
+        if(button == mouse.LEFT):
+            # Don't store zero-width circles
+            if (self.temp_item.radius == 0):
+                self.items.remove(self.temp_item)
+            del self.temp_item
+            self.pop_handlers()
+            return True
+        
+    # ~~~~~~~~~~ RECTANGLE creation subroutines ~~~~~~~~~~
+    def rect_on_click(self, x, y, button, modifiers):
+        if(button == mouse.LEFT):
+            self.temp_item = Polygon.fromRectangle(geometry.Point(x, y), 0, 0)
+            self.add_item(self.temp_item)
+            return True
+    
+    def rect_on_drag(self, x, y, dx, dy, buttons, modifiers):
+        #try:
+            self.temp_item.width += dx
+            self.temp_item.height += dy
+            self.temp_item.updateFromRectangle()
+            self.temp_item.updateBounds()
+            return True
+        #except:
+            pass
+        
+    def rect_on_release(self, x, y, button, modifiers):
+            if(button == mouse.LEFT):
+                if (self.temp_item.width == 0 or self.temp_item.height == 0):
+                    self.items.remove(self.temp_item)
+                del self.temp_item
+                self.pop_handlers()
+                return True
+            pass
+        
 if (__name__=="__main__"):
     window = MainWindow()
     window.add_item(Polygon.fromRectangle(geometry.Point(10, 10), 200, 300))

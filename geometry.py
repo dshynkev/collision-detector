@@ -35,28 +35,28 @@ def _get_circle_to_polygon_normal(polygon, circle):
         
 
 # Dot product of two vectors
-def _dot(vector, other):
+def dot(vector, other):
     return (vector.x*other.x+vector.y*other.y)
 
 # Vector product (multiplied as 2x1 matrices)
 
-def _vec(vector, other):
+def vec(vector, other):
     return Vector(vector.x*other.x, vector.y*other.y)
     
 # Project a polygon onto an axis
 def _project_polygon(polygon, axis):
-    min_point = _dot(polygon[0], axis)
+    min_point = dot(polygon[0], axis)
     max_point = min_point
     
     for vertex in polygon:
-        current_point = _dot(vertex, axis)
+        current_point = dot(vertex, axis)
         min_point = min(min_point, current_point)
         max_point = max(max_point, current_point)
         
     return (min_point, max_point)
 
 def _project_circle(circle, axis):
-    center_point = _dot(circle, axis)
+    center_point = dot(circle, axis)
     min_point = center_point-circle.radius
     max_point = center_point+circle.radius
     return (min_point, max_point)
@@ -157,7 +157,7 @@ class Point:
     def __mul__(self, other):
         try:
             # If this type is a container, do matrix multiplication
-            return _vec(self, other)
+            return vec(self, other)
         except:
             # Else, assume that other is scalar
             return Point(self.x*other, self.y*other)
@@ -201,10 +201,38 @@ class Point:
 class Vector(Point):
     def __init__(self, x, y):
         super().__init__(x, y)
+        self._updateLength()
+        
+    def __iadd__(self, other):
+        self=super().__iadd__(other)
+        self._updateLength()
+        return self
+    
+    def __isub__(self, other):
+        self=super().__isub__(other)
+        self._updateLength()
+        return self
+        
+    def __imul__(self, other):
+        self=super().__imul__(other)
+        self._updateLength()
+        return self
+        
+    def __itruediv__(self, other):
+        self=super().__itruediv__(other)
+        self._updateLength()
+        return self
+        
+    def _updateLength(self):
         self.length = math.sqrt(self.x*self.x + self.y*self.y)
     
     def isNullVector(self):
         return self.x==0 and self.y==0
+    
+    def shortenBy(self, vector):
+        self.x -= -vector.x if (self.x>0) != (vector.x>0) else vector.x
+        self.y -= -vector.y if (self.y>0) != (vector.y>0) else vector.y
+        self._updateLength()
     
     def normal(self):
         return Vector(self.y, -self.x)
@@ -215,8 +243,9 @@ class Vector(Point):
             self.length = 1
     
     def normalized(self):
-        self.normalize()
-        return self
+        proxy=copy(self)
+        proxy.normalize()
+        return proxy
 
 # Shapes will inherit from point, as they necessarily have a point-of-origin
 class Rectangle(Point):
@@ -289,13 +318,20 @@ class Polygon:
         instance.height = height
         instance.x, instance.y = instance.dots[0]
         return instance
+    
+    def updateFromRectangle(self):
+        try:
+            Polygon.__init__(self, [Point(self.x, self.y), Point(self.x, self.y+self.height), 
+                    Point(self.x+self.width, self.y+self.height), Point(self.x+self.width, self.y)])
+        except:
+            pass
                     
     @classmethod
     def fromList(cls, lst):
         return cls(list(map(Point.fromTuple, lst)))
     
     def get_gl_vertices(self):
-        vertices = [coord for dot in self.dots for coord in dot]    # Transform list of yuples into a flat list
+        vertices = [coord for dot in self.dots for coord in dot]    # Transform list of tuples into a flat list
         vertices += [-1, -1]     # Restart trigger for OpenGL. Repeated twice because vertex data has to be 2-aligned
         return vertices
     

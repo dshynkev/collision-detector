@@ -13,7 +13,7 @@ import pyglet
 from pyglet.gl import *
 from glhelper import *
 
-from shape import *
+from shape import Shape
 
 class Circle(Shape, geometry.Circle):
     def __init__(self, center, radius):
@@ -62,6 +62,10 @@ class Circle(Shape, geometry.Circle):
         tex.blit(-1, -1)
         
         self.shaders.unbind()
+        
+    def updateBounds(self):
+        self.bounds.x, self.bounds.y = self-self.radius
+        self.bounds.width = self.bounds.height = self.radius * 2
 
     def collidingWith(self, item):
         # Item is a circle
