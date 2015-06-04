@@ -74,8 +74,9 @@ class Polygon(Shape, geometry.Polygon):
         if(type(self) is type(item)):
             # If both are rectangles, use rectangle-specific algo
             if(hasattr(self, 'rectangle') and hasattr(item, 'rectangle')):
+                # We use bounds here because otherwise we have to consider negative widths/heights                
                 return const.COLLISION_RECT if\
-                    geometry.check_collide_rectangles(self, item) else const.COLLISION_NONE
+                    geometry.check_collide_rectangles(self.bounds, item.bounds) else const.COLLISION_NONE
             else:
                 return const.COLLISION_SAT if\
                     geometry.check_collide_polygons(self.dots, item.dots, self.normals, item.normals) else const.COLLISION_NONE

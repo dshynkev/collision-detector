@@ -5,7 +5,7 @@ DESCRIPTION:    This holds the constants that pertain to this program
 KNOWN ISSUES:
 '''
 
-FPS = 60    #Smooth enough on my machine, subject to decrement if drawing code becomes too bloated.
+FPS = 40    #Smooth enough on my machine, subject to decrement if drawing code becomes too bloated.
 
 VERTEX_SHADER_SRC="vertex.vert"
 FRAGMENT_SHADER_SRC="fragment.frag"
@@ -16,11 +16,12 @@ MAIN_MIN_SIZE = (100, 100)  #Width could be larger, depending on the window dect
 BORDER_WIDTH = 2.0  #Outline width for colliding shapes
 SMOOTH_WIDTH = 2.0  #Transition span for circles
 
-AUTO_TRANS_MAX = 300
-AUTO_SPEED = 300/FPS
+AUTO_TRANS_MAX = 300    # Maximum length of a random translation vector
+AUTO_SPEED = 300/FPS    # Yes, this is ugly. No going to change anytime soon.
 
 #The higher the number, the higher the priority when displaying
 COLLISION_NONE, COLLISION_RECT, COLLISION_CIRCLE, COLLISION_SAT = 0, 1, 2, 3
+CREATE_NONE, CREATE_RECT, CREATE_CIRCLE, CREATE_POLY = 0x000, 0x001, 0x010, 0x100
 
 COLOR_WHITE = (255, 255, 255, 255)
 COLOR_BLACK = (0, 0, 0, 255)

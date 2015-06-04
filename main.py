@@ -42,6 +42,8 @@ class MainWindow(pyglet.window.Window):
         self.multidrag_flag = True  # Whether all overlapping items or only the uppermost one should be dragged.
         self.random_move_flag = False # Whether shapes should be automatically moved
         
+        self.creation_flags = const.CREATE_NONE
+        
         # Stack handlers to preserve their default behaviour
         self.push_handlers(on_resize = self.resize)
 
@@ -123,9 +125,12 @@ class MainWindow(pyglet.window.Window):
             if(symbol == key.F):
                 self.fullscreen_flag = not self.fullscreen_flag
                 self.set_fullscreen(self.fullscreen_flag)
+            
             # On CTRL+M, toggle multidrag
             if(symbol == key.M):
                 self.multidrag_flag = not self.multidrag_flag
+            
+            # On CTRL+A, turn on random motion
             if(symbol == key.A):
                 self.random_move_flag = not self.random_move_flag
                 if(self.random_move_flag):
@@ -134,14 +139,35 @@ class MainWindow(pyglet.window.Window):
                     pyglet.clock.unschedule(self.random_move)
             
             if(symbol == key.C):
-                self.push_handlers(on_mouse_press = self.circle_on_click,
-                                   on_mouse_drag = self.circle_on_drag,
-                                   on_mouse_release = self.circle_on_release)
+                self.creation_flags ^= const.CREATE_CIRCLE
+                if(self.creation_flags & const.CREATE_CIRCLE):
+                    self.push_handlers(on_mouse_press = self.circle_on_click,
+                                       on_mouse_drag = self.circle_on_drag,
+                                       on_mouse_release = self.circle_on_release)
+                else:
+                    self.pop_handlers()
                 
             if(symbol == key.R):
-                self.push_handlers(on_mouse_press = self.rect_on_click,
-                                   on_mouse_drag = self.rect_on_drag,
-                                   on_mouse_release = self.rect_on_release)
+                self.creation_flags ^= const.CREATE_RECT
+                if(self.creation_flags & const.CREATE_RECT):
+                    self.push_handlers(on_mouse_press = self.rect_on_click,
+                                       on_mouse_drag = self.rect_on_drag,
+                                       on_mouse_release = self.rect_on_release)
+                else:
+                    self.pop_handlers()
+                                   
+            if(symbol == key.P):
+                self.creation_flags ^= const.CREATE_POLY
+                if(self.creation_flags & const.CREATE_POLY):
+                    self.push_handlers(on_mouse_press = self.polygon_on_click)
+                else:
+                    # Polygon creation is only finished when the user quits creation mode
+                    # We include 3 because the first point is appended to the end, so dots hold n+1 vertices
+                    if(len(self.temp_item.dots) <= 3):
+                        self.items.remove(self.temp_item)
+                    del self.temp_item
+                    self.pop_handlers()
+                    
             # On CTRL+Q, exit
             if(symbol == key.Q):
                 window.dispatch_event('on_close')
@@ -155,7 +181,6 @@ class MainWindow(pyglet.window.Window):
             window.dispatch_event('on_close')
             
     # ~~~~~~~~~~ CIRCLE creation subroutines ~~~~~~~~~~
-    
     def circle_on_click(self, x, y, button, modifiers):
         if(button == mouse.LEFT):
             self.temp_item = Circle(geometry.Point(x, y), 0)
@@ -163,18 +188,24 @@ class MainWindow(pyglet.window.Window):
             return True     # Don't pass control to default handler
         
     def circle_on_drag(self, x, y, dx, dy, buttons, modifiers):
-        self.temp_item.radius += geometry.Vector(dx, dy).length
-        self.temp_item.updateBounds()
-        return True
+        try:
+            self.temp_item.radius += geometry.Vector(dx, dy).length
+            self.temp_item.updateBounds()
+            self.check_collisions([self.temp_item])
+            return True
+        except AttributeError:
+            pass
         
     def circle_on_release(self, x, y, button, modifiers):
-        if(button == mouse.LEFT):
-            # Don't store zero-width circles
-            if (self.temp_item.radius == 0):
-                self.items.remove(self.temp_item)
-            del self.temp_item
-            self.pop_handlers()
-            return True
+        try:        
+            if(button == mouse.LEFT):
+                # Don't store zero-width circles
+                if (self.temp_item.radius == 0):
+                    self.items.remove(self.temp_item)
+                del self.temp_item
+                return True
+        except AttributeError:
+            pass
         
     # ~~~~~~~~~~ RECTANGLE creation subroutines ~~~~~~~~~~
     def rect_on_click(self, x, y, button, modifiers):
@@ -184,32 +215,38 @@ class MainWindow(pyglet.window.Window):
             return True
     
     def rect_on_drag(self, x, y, dx, dy, buttons, modifiers):
-        #try:
+        try:
             self.temp_item.width += dx
             self.temp_item.height += dy
             self.temp_item.updateFromRectangle()
             self.temp_item.updateBounds()
+            self.check_collisions([self.temp_item])
             return True
-        #except:
+        except AttributeError:
             pass
         
     def rect_on_release(self, x, y, button, modifiers):
+        try:            
             if(button == mouse.LEFT):
+                # Don't store zero-width/height rectangles
                 if (self.temp_item.width == 0 or self.temp_item.height == 0):
                     self.items.remove(self.temp_item)
                 del self.temp_item
-                self.pop_handlers()
                 return True
+        except AttributeError:
             pass
+        
+    # ~~~~~~~~~~ POLYGON creation subroutines ~~~~~~~~~~
+    def polygon_on_click(self, x, y, button, modifiers):
+        if(button == mouse.LEFT):
+            if(not hasattr(self, 'temp_item')):
+                self.temp_item = Polygon([geometry.Point(x, y)])
+                self.add_item(self.temp_item)
+            else:
+                self.temp_item.add_point(geometry.Point(x, y))
+            self.check_collisions([self.temp_item])
+            return True
         
 if (__name__=="__main__"):
     window = MainWindow()
-    window.add_item(Polygon.fromRectangle(geometry.Point(10, 10), 200, 300))
-    window.add_item(Polygon.fromRectangle(geometry.Point(20, 20), 100, 120))
-    window.add_item(Polygon.fromRectangle(geometry.Point(50, 50), 400, 200))
-    window.add_item(Circle(geometry.Point(150, 150), 100))
-    window.add_item(Circle(geometry.Point(250, 250), 300))
-    window.add_item(Polygon.fromList([[250, 250], [200, 300], [150, 200], [200, 50], [250, 0], [300, 150]]))
-    window.add_item(Polygon.fromList([[400, 300], [300, 300], [350, 400]]))
-    window.add_item(Polygon.fromList([[400, 200], [400, 400], [600, 400], [800, 200]]))
     pyglet.app.run()

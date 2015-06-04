@@ -31,17 +31,18 @@ def _get_circle_to_polygon_normal(polygon, circle):
     normal = Vector.fromTuple(circle-closest)
     normal.normalize()
     return [normal]
-        
-        
 
-# Dot product of two vectors
+# Dot product of two 2D vectors
 def dot(vector, other):
     return (vector.x*other.x+vector.y*other.y)
 
 # Vector product (multiplied as 2x1 matrices)
-
 def vec(vector, other):
     return Vector(vector.x*other.x, vector.y*other.y)
+
+# Cross product of vectors OA and OB.
+def cross(o, a, b):
+    return (a.x-o.x)*(b.y-o.y) - (a.y-o.y)*(b.x-o.x)
     
 # Project a polygon onto an axis
 def _project_polygon(polygon, axis):
@@ -97,6 +98,32 @@ def check_collide_polygon_circle(polygon, circle, polygon_normals):
 
 # Non-SAT stuff starts here
 
+# Convex hull of a set of points, stolen from Wikibooks ftw
+def convex_hull(dots):
+    # Do nothing for non-polygons
+    if(len(dots)<3):
+        return dots
+
+    # Remove duplicates and sort as tuples
+    dots = sorted(set(dots), key=lambda a: (a.x, a.y))
+    
+    upper_hull = []
+    lower_hull=[]
+    
+    for dot in dots:
+        # If the angle is counter-clockwise, pop the outliers off
+        while(len(upper_hull) >=2 and cross(upper_hull[-2], upper_hull[-1], dot) <= 0):
+            upper_hull.pop()
+        upper_hull.append(dot)
+        
+    for dot in reversed(dots):
+        # Ditto, but in opposite direction
+        while(len(lower_hull) >=2 and cross(lower_hull[-2], lower_hull[-1], dot) <= 0):
+            lower_hull.pop()
+        lower_hull.append(dot)
+    
+    return lower_hull[:-1] + upper_hull[:-1]
+
 def check_collide_rectangles(first, second):
         return  (((first.x>=second.x and first.x<=second.x+second.width) or    #X1...x3...X2
                     (second.x>=first.x and second.x<=first.x+first.width)) and    #x3...X1...x4
@@ -132,7 +159,7 @@ class Point:
         try:
             self.x += other.x
             self.y += other.y
-        except:
+        except AttributeError:
             self.x += other
             self.y += other
         return self
@@ -141,7 +168,7 @@ class Point:
         try:
             return Point(self.x-other.x,
                          self.y-other.y)
-        except:
+        except AttributeError:
             # If other has no (x,y), assume it's scalar 
             return Point(self.x-other, self.y-other)
     
@@ -158,7 +185,7 @@ class Point:
         try:
             # If this type is a container, do matrix multiplication
             return vec(self, other)
-        except:
+        except AttributeError:
             # Else, assume that other is scalar
             return Point(self.x*other, self.y*other)
 
@@ -279,7 +306,7 @@ class Circle(Point):
 class Polygon:
     def __init__(self, dots):
         if(dots[0] != dots[-1]):        
-            dots += [copy(dots[0])]        # Append first vertex to the end, making the polygon enclosed
+            dots.append(copy(dots[0]))        # Append first vertex to the end, making the polygon enclosed
         self.dots = dots
         self.normals = get_polygon_normals(self.dots)
         
@@ -329,6 +356,13 @@ class Polygon:
     @classmethod
     def fromList(cls, lst):
         return cls(list(map(Point.fromTuple, lst)))
+        
+    def add_point(self, point):
+        self.dots.insert(len(self.dots)-1, point)
+        self.dots = convex_hull(self.dots)
+        self.dots.append(copy(self.dots[0]))
+        self.updateBounds()
+        self.normals = get_polygon_normals(self.dots)
     
     def get_gl_vertices(self):
         vertices = [coord for dot in self.dots for coord in dot]    # Transform list of tuples into a flat list
