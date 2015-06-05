@@ -1,17 +1,15 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-06-02 01:45:00
+LAST EDITED:	2015-06-04 22:34:31
 DESCRIPTION:     Circle item class.
-KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails.
+KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails (which, mind you, was barely tested).
 '''
 
-from helpers import getRandomColor, normalized, load_GLshaders
+from helpers import getRandomColor, load_GLshaders
 import constants as const
 import geometry
 
 import pyglet
-from pyglet.gl import *
-from glhelper import *
 
 from shape import Shape
 
@@ -21,7 +19,7 @@ class Circle(Shape, geometry.Circle):
         geometry.Circle.__init__(self, center, radius)
 
         # Normalization needed for OpenGL color model (vec4([0...1]))
-        self.color = normalized(getRandomColor())
+        self.color = getRandomColor()
         
     #Load static shaders. Since we have no fallback option if this fails, ignore all exceptions. 
     shaders=load_GLshaders()
@@ -48,7 +46,7 @@ class Circle(Shape, geometry.Circle):
         
         self.shaders.uniformf(b'circleColor',  *self.color)
         if(self.colliding):
-            self.shaders.uniformf(b'borderColor', *normalized(const.COLOR_COLLIDING[self.colliding]))
+            self.shaders.uniformf(b'borderColor', *const.COLOR_COLLIDING[self.colliding])
         
         # Now, all distances will be scaled with respect to the radius of the circle.
         self.shaders.uniform_matrixf(b'scaleMatrix', [relative_scalex, 0, 0, 0,\

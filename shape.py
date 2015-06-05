@@ -1,11 +1,10 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-06-02 01:43:42
+LAST EDITED:	2015-06-04 21:33:47
 DESCRIPTION:     Shape parentclass. All shapes should subclass this.
-KNOWN ISSUES:
+KNOWN ISSUES:   
 '''
 import constants as const
-import math
 import geometry
 
 class Shape:
@@ -31,6 +30,7 @@ class Shape:
     
     @classmethod
     def tellScreenBounds(this, width, height):
+        this.SCENE_START_HEIGHT = height*const.BUTTON_HEIGHT_FACTOR
         this.SCENE_WIDTH=width
         this.SCENE_HEIGHT=height
         
@@ -54,17 +54,17 @@ class Shape:
         
         # Lower/left edges
         if(self.bounds.x<0):
-            adjust_vector.x += -self.bounds.x
-        if(self.bounds.y<0):
-            adjust_vector.y += -self.bounds.y
+            adjust_vector.x = -self.bounds.x
+        if(self.bounds.y<self.SCENE_START_HEIGHT):
+            adjust_vector.y = self.SCENE_START_HEIGHT-self.bounds.y
         
         # Upper/right edges
         x_overflow = self.bounds.x+self.bounds.width - self.SCENE_WIDTH 
         y_overflow = self.bounds.y+self.bounds.height - self.SCENE_HEIGHT
         if(x_overflow>0):
-            adjust_vector.x += -x_overflow
+            adjust_vector.x = -x_overflow
         if(y_overflow>0):
-            adjust_vector.y += -y_overflow
+            adjust_vector.y = -y_overflow
         
         if(not adjust_vector.isNullVector()):   
             self.moveBy(adjust_vector)

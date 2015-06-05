@@ -5,25 +5,25 @@
 # (see http://www.boost.org/LICENSE_1_0.txt)
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-02 01:43:53
+LAST EDITED:	2015-06-04 22:44:50
 DESCRIPTION:    OpenGL shader program convenience class.
-KNOWN ISSUES:   * VERY liberal in terms of error-checking; better pray that nothing fails.
-                * Barely tested
+KNOWN ISSUES:   *> VERY liberal in terms of error-checking; better pray that nothing fails.
+                *> Barely tested
 '''
 
-from pyglet.gl import *
+import pyglet.gl as gl
 from ctypes import *
 
 class Shader:
     # We can theoretically have more that one source string per shader.
     # They will be concatenated later.
     def __init__(self, vert = [], frag = []):
-        self.handle = glCreateProgram()
+        self.handle = gl.glCreateProgram()
         
         self.linked = False
 
-        self.createShader(vert, GL_VERTEX_SHADER)
-        self.createShader(frag, GL_FRAGMENT_SHADER)
+        self.createShader(vert, gl.GL_VERTEX_SHADER)
+        self.createShader(frag, gl.GL_FRAGMENT_SHADER)
         
         self.link()
 
@@ -34,82 +34,82 @@ class Shader:
         if count < 1:
             return
 
-        shader = glCreateShader(type)
+        shader = gl.glCreateShader(type)
 
         # ctypes magic: convert python [strings] to C (char**).
         src = (c_char_p * count)(*strings)
-        glShaderSource(shader, count, cast(pointer(src), POINTER(POINTER(c_char))), None)
+        gl.glShaderSource(shader, count, cast(pointer(src), POINTER(POINTER(c_char))), None)
 
-        glCompileShader(shader)
+        gl.glCompileShader(shader)
 
         # Retrieve the compile status
         status = c_int(0)
-        glGetShaderiv(shader, GL_COMPILE_STATUS, byref(status))
+        gl.glGetShaderiv(shader, gl.GL_COMPILE_STATUS, byref(status))
 
         # If compilation failed, get log and abort.
         if not status:
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, byref(status))
+            gl.glGetShaderiv(shader, gl.GL_INFO_LOG_LENGTH, byref(status))
             log = create_string_buffer(status.value)
-            glGetShaderInfoLog(shader, status, None, log)
+            gl.glGetShaderInfoLog(shader, status, None, log)
             
             raise Exception("Compiling shaders failed: {0}".format(log.value))
         else:
             # If all is well, attach the shader to the program
-            glAttachShader(self.handle, shader);
+            gl.glAttachShader(self.handle, shader);
 
     def link(self):
-        glLinkProgram(self.handle)
+        gl.glLinkProgram(self.handle)
 
         # Retrieve the link status
         status = c_int(0)
-        glGetProgramiv(self.handle, GL_LINK_STATUS, byref(status))
+        gl.glGetProgramiv(self.handle, gl.GL_LINK_STATUS, byref(status))
 
         # If linking failed, get log and abort.
         if not status:
             #Retrieve the log and pass it up with an exception.
-            glGetProgramiv(self.handle, GL_INFO_LOG_LENGTH, byref(status))
+            gl.glGetProgramiv(self.handle, gl.GL_INFO_LOG_LENGTH, byref(status))
             log = create_string_buffer(status.value)
-            glGetProgramInfoLog(self.handle, status, None, log)
+            gl.glGetProgramInfoLog(self.handle, status, None, log)
             
             raise Exception("Linking shaders failed {0}".format(log.value))
         else:
             self.linked = True
 
     def bind(self):
-        glUseProgram(self.handle)
+        gl.glUseProgram(self.handle)
 
     # Since we don't really care which program is bound when we unbind it,
     # this doesn't require an instance to be called on.
     @classmethod
     def unbind(self):
-        glUseProgram(0)
+        gl.glUseProgram(0)
     
     # Upload an integer or a vector of integers as a uniform
     def uniformi(self, name, *vals):
         if len(vals) in range(1, 5):
             # Select the correct function
-            { 1 : glUniform1i,
-                2 : glUniform2i,
-                3 : glUniform3i,
-                4 : glUniform4i
+            { 1 : gl.glUniform1i,
+                2 : gl.glUniform2i,
+                3 : gl.glUniform3i,
+                4 : gl.glUniform4i
                 # Retrieve the uniform location, and set
-            }[len(vals)](glGetUniformLocation(self.handle, name), *vals)
+            }[len(vals)](gl.glGetUniformLocation(self.handle, name), *vals)
             
     
     # Upload a float or a vector of floats as a uniform
     def uniformf(self, name, *vals):
         if len(vals) in range(1, 5):
             # Select the correct function
-            { 1 : glUniform1f,
-                2 : glUniform2f,
-                3 : glUniform3f,
-                4 : glUniform4f
+            { 1 : gl.glUniform1f,
+                2 : gl.glUniform2f,
+                3 : gl.glUniform3f,
+                4 : gl.glUniform4f
                 # Retrieve the uniform location, and set
-            }[len(vals)](glGetUniformLocation(self.handle, name), *vals)
+            }[len(vals)](gl.glGetUniformLocation(self.handle, name), *vals)
 
     # Upload a uniform matrix
     def uniform_matrixf(self, name, mat):
         # Obtian the uniform location
-        loc = glGetUniformLocation(self.handle, name)
+        loc = gl.glGetUniformLocation(self.handle, name)
         # Uplaod the 4x4 floating point matrix
-        glUniformMatrix4fv(loc, 1, False, (c_float * 16)(*mat))
+        gl.glUniformMatrix4fv(loc, 1, False, (c_float * 16)(*mat))

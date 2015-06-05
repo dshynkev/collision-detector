@@ -1,8 +1,8 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-02 01:44:00
+LAST EDITED:	2015-06-04 22:26:08
 DESCRIPTION:    Helper functions
-KNOWN ISSUES:
+KNOWN ISSUES:   *> Probably too small for a separate module
 '''
 
 import constants as const
@@ -13,18 +13,12 @@ from glhelper import Shader
 # Get a random RGBA vector. Alpha is constant and defined in constants.py, as well as generation bounds.
 def getRandomColor():
     seed()
-    assert(const.COLOR_LOWEST>=0 and const.COLOR_HIGHEST<=255)
     return tuple([round(uniform (const.COLOR_LOWEST, const.COLOR_HIGHEST)) for i in range(3)])+ (const.COLOR_ALPHA,)
 
 def getRandomTranslation():
     dx = uniform(-const.AUTO_TRANS_MAX, const.AUTO_TRANS_MAX)
     dy = uniform(-const.AUTO_TRANS_MAX, const.AUTO_TRANS_MAX)
     return (dx, dy)
-
-# Normalize a color vector with respect to a given factor. 
-# By default, will normalize a [0..255] to [0.0...1.0] GL RGBA vector
-def normalized(vector, factor=255):
-    return [i/factor for i in vector]
 
 # Set up vertex and geometry shaders from source files.
 def load_GLshaders(vertex_src=const.VERTEX_SHADER_SRC, fragment_src=const.FRAGMENT_SHADER_SRC):
