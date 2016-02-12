@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-04 22:26:08
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:    Helper functions
 KNOWN ISSUES:   *> Probably too small for a separate module
 '''

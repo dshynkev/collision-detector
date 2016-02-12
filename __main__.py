@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-04 22:30:18
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:    This is the main class of a simple collision detection demo
                 written in Python (Pyglet framework). 
 KNOWN ISSUES:   *> Segfaults on the only Windows machine I have at my disposal. Appears to be a Python issue.
@@ -147,7 +147,7 @@ class MainWindow(pyglet.window.Window):
                 if(not self.multidrag_flag):    # If no multidrag, return when found the uppermost selected item
                     return True
     
-    # Moves selected items with the cursor. Performance would benefit from, moving the
+    # Moves selected items with the cursor. Performance would benefit from moving the
     # collision detection to on_draw(), since no one cares about collisions unless
     # they are indicated during rendering, but there is a _miniscule_ chance
     # that the button will be realeased in between two on_draw()'s. Better play it safe.

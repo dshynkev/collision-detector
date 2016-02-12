@@ -5,7 +5,7 @@
 # (see http://www.boost.org/LICENSE_1_0.txt)
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-04 22:44:50
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:    OpenGL shader program convenience class.
 KNOWN ISSUES:   *> VERY liberal in terms of error-checking; better pray that nothing fails.
                 *> Barely tested

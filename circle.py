@@ -1,6 +1,6 @@
 '''
 AUTHOR:          principio
-LAST EDITED:	2015-06-04 22:34:31
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:     Circle item class.
 KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails (which, mind you, was barely tested).
 '''

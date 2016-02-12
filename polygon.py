@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-04 22:41:28
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:    Polygon item class. Since rects use a different algorithm, they do not belong.
 KNOWN ISSUES:   *> Polygon antialiasing unavailable without hacking pyglet code or writing custom shaders. Sad, sad.
 '''

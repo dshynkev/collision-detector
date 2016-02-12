@@ -1,6 +1,6 @@
 '''
 AUTHOR: 	 	principio
-LAST EDITED:	2015-06-04 22:23:32
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION: 	Button class for UI
 KNOWN ISSUES: 	*> Barely tested
 '''
@@ -17,7 +17,7 @@ class Button:
         x, y - lower bottom point
         width, height - dimensions of the button
         oncallback, offcallback - callback functions to be called when the button is toggled on/off
-        *_params - params to pass to the respective functions
+        *_param - params to pass to the respective functions
     '''
     def __init__(self, text, x, y, width, height, oncallback=lambda:None, oncallback_param=[], offcallback=lambda:None, offcallback_param=[], toggled=False):
         self.text = text
@@ -30,7 +30,7 @@ class Button:
     
     # Tell that a click was performed. The button will claim it (returning True) or reject it (False)
     def tellClicked(self, x, y):
-        # IF bound containt the point
+        # IF click position within bounds
         if (self.x<=x) and (self.x+self.width>=x)\
                 and (self.y<=y) and (self.y+self.height>=y):
                     self.toggled = not self.toggled

@@ -1,6 +1,6 @@
 '''
 AUTHOR:         principio
-LAST EDITED:	2015-06-04 22:24:24
+LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:    Geometrical classes and algorithms
 KNOWN ISSUES:   Names will collide, import by name only.
 '''
