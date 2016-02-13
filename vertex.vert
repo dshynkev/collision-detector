@@ -1,4 +1,4 @@
-#version 400
+#version 330
 
 //Scaling matrix will adjust the size with respect to the radius, which is not processed here in shaders, and keep horizontal/vertical ratio constant.
 uniform mat4 scaleMatrix;

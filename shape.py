@@ -26,7 +26,7 @@ class Shape:
         self.bounds = geometry.Rectangle(origin, width, height)
         
         self.collisions=[]
-        self.colliding = 0        
+        self.colliding = const.COLLISION_NONE
     
     @classmethod
     def tellScreenBounds(this, width, height):
@@ -40,7 +40,7 @@ class Shape:
     def moveBy(self, trans_vector):
         # If the item cannot fit in given bounds, restrict movement.
         if(self.bounds.width > self.SCENE_WIDTH
-            or self.bounds.height > self.SCENE_HEIGHT):
+            or self.bounds.height > (self.SCENE_HEIGHT-self.SCENE_START_HEIGHT)):
             return False
         
         self += trans_vector      # Move the item itself
@@ -48,7 +48,6 @@ class Shape:
         self.adjustBounds()             # Make sure the shape stays in current window
         
     
-    # Returns whether 
     def adjustBounds(self):
         adjust_vector = geometry.Vector(0, 0)    
         

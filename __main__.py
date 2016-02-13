@@ -4,7 +4,6 @@ LAST EDITED:	2016-02-11 19:12:20
 DESCRIPTION:    This is the main class of a simple collision detection demo
                 written in Python (Pyglet framework). 
 KNOWN ISSUES:   *> Segfaults on the only Windows machine I have at my disposal. Appears to be a Python issue.
-                *> On Linux/X11, going fullscreen will sometimes mess up the picture. Dragging any item helps.
 '''
 
 import pyglet
@@ -23,9 +22,8 @@ from button import Button
 
 class MainWindow(pyglet.window.Window):
     def __init__(self):
-        super().__init__(resizable=True)    # Seemingly no way to toggle resizability
-                                            # without passing the flag to parent constructor
-        self.maximize()             # Start maximized
+        super().__init__(resizable=True)
+        self.maximize();
 
         self.set_minimum_size(*const.MAIN_MIN_SIZE)
         self.set_caption(const.MAIN_TITLE)
