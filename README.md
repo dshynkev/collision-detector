@@ -2,7 +2,7 @@
 
 This is a simple collision detection demo written in Python/Pyglet for my Computer Science Grade 10 class.
 
-## Keyboard control
+## Keyboard controls
 
 For your convenience, here are the keyboard shortcuts you need to know:
 
