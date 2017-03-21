@@ -3,13 +3,6 @@
 #
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
-'''
-AUTHOR:         principio
-LAST EDITED:	2016-02-11 19:12:20
-DESCRIPTION:    OpenGL shader program convenience class.
-KNOWN ISSUES:   *> VERY liberal in terms of error-checking; better pray that nothing fails.
-                *> Barely tested
-'''
 
 import pyglet.gl as gl
 from ctypes import *
@@ -19,18 +12,18 @@ class Shader:
     # They will be concatenated later.
     def __init__(self, vert = [], frag = []):
         self.handle = gl.glCreateProgram()
-        
+
         self.linked = False
 
         self.createShader(vert, gl.GL_VERTEX_SHADER)
         self.createShader(frag, gl.GL_FRAGMENT_SHADER)
-        
+
         self.link()
 
     def createShader(self, strings, type):
         count = len(strings)
-        
-        #If no code 
+
+        #If no code
         if count < 1:
             return
 
@@ -51,7 +44,7 @@ class Shader:
             gl.glGetShaderiv(shader, gl.GL_INFO_LOG_LENGTH, byref(status))
             log = create_string_buffer(status.value)
             gl.glGetShaderInfoLog(shader, status, None, log)
-            
+
             raise Exception("Compiling shaders failed: {0}".format(log.value))
         else:
             # If all is well, attach the shader to the program
@@ -70,7 +63,7 @@ class Shader:
             gl.glGetProgramiv(self.handle, gl.GL_INFO_LOG_LENGTH, byref(status))
             log = create_string_buffer(status.value)
             gl.glGetProgramInfoLog(self.handle, status, None, log)
-            
+
             raise Exception("Linking shaders failed {0}".format(log.value))
         else:
             self.linked = True
@@ -83,7 +76,7 @@ class Shader:
     @classmethod
     def unbind(self):
         gl.glUseProgram(0)
-    
+
     # Upload an integer or a vector of integers as a uniform
     def uniformi(self, name, *vals):
         if len(vals) in range(1, 5):
@@ -94,8 +87,8 @@ class Shader:
                 4 : gl.glUniform4i
                 # Retrieve the uniform location, and set
             }[len(vals)](gl.glGetUniformLocation(self.handle, name), *vals)
-            
-    
+
+
     # Upload a float or a vector of floats as a uniform
     def uniformf(self, name, *vals):
         if len(vals) in range(1, 5):

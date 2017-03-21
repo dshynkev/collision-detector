@@ -1,10 +1,3 @@
-'''
-AUTHOR:          principio
-LAST EDITED:	2016-02-11 19:12:20
-DESCRIPTION:     Circle item class.
-KNOWN ISSUES:    *> Will crash if anything on OpenGL side fails (which, mind you, was barely tested).
-'''
-
 from helpers import getRandomColor, load_GLshaders
 import constants as const
 import geometry
@@ -20,34 +13,34 @@ class Circle(Shape, geometry.Circle):
 
         # Normalization needed for OpenGL color model (vec4([0...1]))
         self.color = getRandomColor()
-        
-    #Load static shaders. Since we have no fallback option if this fails, ignore all exceptions. 
+
+    #Load static shaders. Since we have no fallback option if this fails, ignore all exceptions.
     shaders=load_GLshaders()
-    
+
     def render(self):
         self.set_colliding_flag()
-        
+
         self.shaders.bind()
-             
+
         scalex = 2/self.SCENE_WIDTH    # Set scale factors to width/height reciprocals: this will map pixels to OpenGL coordinates
         scaley = 2/self.SCENE_HEIGHT
-        
+
         relative_scalex = scalex*(self.radius + const.SMOOTH_WIDTH)     # Determine relative scale factors: scale with respect to radius
         relative_scaley = scaley*(self.radius + const.SMOOTH_WIDTH)     # We add smooth_width here because the transition ring is also part of the circle
-        
+
         self.shaders.uniformi(b'paintBorder', self.colliding)   # Whether the border should be painted
-        
+
         # Center is mapped to correct offset (coords start from center, so -1+coord is its translation to lower left corner, where Pyglet coords start)
         # We divide center coords by relative scale factors, because they are NOT to be scaled with respect to radius, only distances are.
         self.shaders.uniformf(b'center', (-1+self.x*scalex)/relative_scalex, (-1+self.y*scaley)/relative_scaley)
-        
+
         self.shaders.uniformf(b'smoothWidth', const.SMOOTH_WIDTH)
         self.shaders.uniformf(b'borderWidth', const.BORDER_WIDTH)
-        
+
         self.shaders.uniformf(b'circleColor',  *self.color)
         if(self.colliding):
             self.shaders.uniformf(b'borderColor', *const.COLOR_COLLIDING[self.colliding])
-        
+
         # Now, all distances will be scaled with respect to the radius of the circle.
         self.shaders.uniform_matrixf(b'scaleMatrix', [relative_scalex, 0, 0, 0,\
                                                      0, relative_scaley, 0, 0,\
@@ -56,11 +49,11 @@ class Circle(Shape, geometry.Circle):
 
         # Create a texture, that, when translated to (-1,-1), the Pyglet coord origin, will cover the entire scene (we will scale it later in shaders).
         tex=pyglet.image.Texture.create(2, 2)
-        # ...and translate it as needed.        
+        # ...and translate it as needed.
         tex.blit(-1, -1)
-        
+
         self.shaders.unbind()
-        
+
     def updateBounds(self):
         self.bounds.x, self.bounds.y = self-self.radius
         self.bounds.width = self.bounds.height = self.radius * 2

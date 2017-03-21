@@ -1,10 +1,3 @@
-'''
-AUTHOR:         principio
-LAST EDITED:	2016-02-11 19:12:20
-DESCRIPTION:    Helper functions
-KNOWN ISSUES:   *> Probably too small for a separate module
-'''
-
 import constants as const
 
 from random import uniform, seed
@@ -25,9 +18,9 @@ def load_GLshaders(vertex_src=const.VERTEX_SHADER_SRC, fragment_src=const.FRAGME
     vertex_f=open(vertex_src, 'rb')
     vertex_code=vertex_f.read()
     vertex_f.close()
-    
+
     fragment_f=open(fragment_src, 'rb')
     fragment_code=fragment_f.read()
     fragment_f.close()
-   
+
     return Shader([vertex_code], [fragment_code])

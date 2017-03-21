@@ -1,10 +1,3 @@
-'''
-AUTHOR:         principio
-LAST EDITED:	2016-02-11 19:12:20
-DESCRIPTION:    This holds the constants that pertain to this program
-KNOWN ISSUES:
-'''
-
 FPS = 40    #Smooth enough on my machine, subject to decrement if drawing code becomes too bloated.
 
 VERTEX_SHADER_SRC = "vertex.vert"

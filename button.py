@@ -1,10 +1,3 @@
-'''
-AUTHOR: 	 	principio
-LAST EDITED:	2016-02-11 19:12:20
-DESCRIPTION: 	Button class for UI
-KNOWN ISSUES: 	*> Barely tested
-'''
-
 import constants as const
 
 import pyglet
@@ -27,7 +20,7 @@ class Button:
         self.oncallback_param = oncallback_param
         self.offcallback = offcallback
         self.offcallback_param = offcallback_param
-    
+
     # Tell that a click was performed. The button will claim it (returning True) or reject it (False)
     def tellClicked(self, x, y):
         # IF click position within bounds
@@ -40,17 +33,17 @@ class Button:
                         self.offcallback(*self.offcallback_param)
                     return True
         return False
-                        
+
     def setCoords(self, x, y, width, height):
         self.x, self.y = x,y
         self.height, self.width = height, width
         # The label is centered
-        self.label = pyglet.text.Label(self.text, color=const.COLOR_BUTTON_TEXT, 
+        self.label = pyglet.text.Label(self.text, color=const.COLOR_BUTTON_TEXT,
                                        x=x+width/2, y=y+height/2,
-                                       anchor_x='center', anchor_y='center')                            
+                                       anchor_x='center', anchor_y='center')
         self.gl_vertices = [self.x, self.y, self.x+width, self.y,
                             self.x+width, self.y+height, self.x, self.y+height]
-    
+
     def render(self):
         if(self.toggled):
             glColor4f(*const.COLOR_BUTTON_TOGGLED)
@@ -60,4 +53,4 @@ class Button:
         glColor4f(*const.COLOR_BUTTON_BORDER)
         draw(4, GL_LINE_LOOP, ('v2f', self.gl_vertices))
         self.label.draw()
-        
+

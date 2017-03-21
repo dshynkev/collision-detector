@@ -1,9 +1,3 @@
-'''
-AUTHOR:          principio
-LAST EDITED:	2016-02-11 19:12:20
-DESCRIPTION:     Shape parentclass. All shapes should subclass this.
-KNOWN ISSUES:
-'''
 import constants as const
 import geometry
 
