@@ -29,3 +29,6 @@ This body of code is hereby released into the public domain.
 
 ## Contributing
 I consider this project complete; that is, no contributions will be accepted.
+
+## Video demo
+![Video demo](/demo/demo.webm)
